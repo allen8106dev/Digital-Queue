@@ -334,7 +334,7 @@
 
       <div class="toolbar">
         <button class="btn-primary" id="joinBtn" type="button">Join</button>
-        <button class="btn-ghost" id="backFromJoin" type="button">Back</button>
+        <button class="btn-ghost" id="exitQueueBtn" type="button">Exit Queue</button>
       </div>
 
       <div id="joinStatus" class="status-block hidden"></div>
@@ -448,6 +448,34 @@
     return `${window.location.origin}${window.location.pathname}?queue=${id}&mode=monitor`;
     }
 
+    function calculateWaitMinutes(queue, memberId) {
+    const avgMinutes = Number(queue.avgMinutes) || 0;
+    const waiting = (queue.members || []).filter(m => !m.served);
+    const waitingAhead = waiting.findIndex(m => m.id === memberId);
+
+    if (waitingAhead < 0) {
+      return null;
+    }
+
+    return {
+      position: waitingAhead + 1,
+      estimatedMinutes: waitingAhead * avgMinutes
+    };
+    }
+
+    function renderJoinStatus(queue) {
+    const wait = calculateWaitMinutes(queue, userId);
+
+    if (!wait) {
+      els.joinStatus.classList.add("hidden");
+      return;
+    }
+
+    const minuteLabel = wait.estimatedMinutes === 1 ? "minute" : "minutes";
+    els.joinStatus.textContent = `You are #${wait.position} in line. Estimated wait: ${wait.estimatedMinutes} ${minuteLabel}.`;
+    els.joinStatus.classList.remove("hidden");
+    }
+
     function renderQr(link) {
     els.qr.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${link}">`;
     }
@@ -517,12 +545,48 @@
         await updateDoc(ref, { members: queue.members });
         }
 
-        els.joinStatus.classList.remove("hidden");
+        renderJoinStatus(queue);
         setNotice("Joined queue");
     } catch {
         setNotice("Error joining queue");
     }
     }
+
+      async function exitQueue() {
+      if (!currentQueueId) {
+        return;
+      }
+
+      const confirmed = window.confirm("Are you sure you want to exit this queue?");
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const ref = doc(db, "queues", currentQueueId);
+        const snap = await getDoc(ref);
+        const queue = snap.data();
+
+        if (!queue) {
+        setNotice("Queue not found");
+        return;
+        }
+
+        const members = queue.members || [];
+        const updatedMembers = members.filter(m => m.id !== userId);
+
+        if (updatedMembers.length === members.length) {
+        setNotice("You are not in this queue");
+        return;
+        }
+
+        await updateDoc(ref, { members: updatedMembers });
+        setNotice("You exited the queue");
+        window.location.href = window.location.pathname;
+      } catch {
+        setNotice("Error exiting queue");
+      }
+      }
 
     // 🔥 SERVE NEXT
     async function serveNext() {
@@ -553,8 +617,19 @@
     const ref = doc(db, "queues", currentQueueId);
 
     unsubscribe = onSnapshot(ref, (snap) => {
-        const queue = snap.data();
-        if (queue) renderMonitor(queue);
+      const queue = snap.data();
+      if (!queue) {
+      setNotice("Queue not found");
+      return;
+      }
+
+      if (views.monitor.style.display !== "none") {
+      renderMonitor(queue);
+      }
+
+      if (views.join.style.display !== "none") {
+      renderJoinStatus(queue);
+      }
     });
     }
 
@@ -607,6 +682,7 @@
         startRealtime();
     } else {
         switchView(views.join);
+      startRealtime();
     }
     }
 
@@ -614,12 +690,12 @@
     document.getElementById("goCreate").onclick = () => switchView(views.create);
     document.getElementById("goJoin").onclick = () => switchView(views.join);
     document.getElementById("backFromCreate").onclick = () => switchView(views.home);
-    document.getElementById("backFromJoin").onclick = () => switchView(views.home);
 
     // 🎯 ACTIONS
     document.getElementById("createBtn").onclick = createQueue;
     document.getElementById("joinBtn").onclick = joinQueue;
     document.getElementById("nextBtn").onclick = serveNext;
+    document.getElementById("exitQueueBtn").onclick = exitQueue;
 
     initFromUrl();
     </script>
