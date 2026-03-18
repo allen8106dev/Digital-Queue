@@ -320,9 +320,23 @@
         <label style="margin-top:10px;">QR Code</label>
         <div id="qr"></div>
 
-        <button class="btn-primary" id="openMonitorBtn" type="button" style="margin-top:10px;">
-          Open Queue
-        </button>
+        <div id="createMonitorPanel" class="stack" style="margin-top:12px;">
+          <label>Live Queue</label>
+          <div class="toolbar">
+            <button class="btn-primary" id="createNextBtn" type="button">Serve Next</button>
+            <button class="btn-ghost" id="createRefreshBtn" type="button">Refresh</button>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-card"><span>Total</span><strong id="createMetricTotal">0</strong></div>
+            <div class="meta-card"><span>Serving</span><strong id="createMetricServing">-</strong></div>
+            <div class="meta-card"><span>Avg</span><strong id="createMetricAvg">2 min</strong></div>
+            <div class="meta-card"><span>You</span><strong id="createMetricPos">-</strong></div>
+          </div>
+
+          <div id="createMonitorList" class="list"></div>
+          <p id="createMonitorEmpty">No one in queue</p>
+        </div>
       </div>
     </section>
 
@@ -399,7 +413,6 @@
     createResult: document.getElementById("createResult"),
     queueLink: document.getElementById("queueLink"),
     qr: document.getElementById("qr"),
-    openMonitorBtn: document.getElementById("openMonitorBtn"),
     nameInput: document.getElementById("nameInput"),
     joinStatus: document.getElementById("joinStatus"),
     queueTitle: document.getElementById("queueTitle"),
@@ -409,7 +422,16 @@
     metricAvg: document.getElementById("metricAvg"),
     metricPos: document.getElementById("metricPos"),
     queueList: document.getElementById("queueList"),
-    emptyQueue: document.getElementById("emptyQueue")
+    emptyQueue: document.getElementById("emptyQueue"),
+    createMonitorPanel: document.getElementById("createMonitorPanel"),
+    createNextBtn: document.getElementById("createNextBtn"),
+    createRefreshBtn: document.getElementById("createRefreshBtn"),
+    createMetricTotal: document.getElementById("createMetricTotal"),
+    createMetricServing: document.getElementById("createMetricServing"),
+    createMetricAvg: document.getElementById("createMetricAvg"),
+    createMetricPos: document.getElementById("createMetricPos"),
+    createMonitorList: document.getElementById("createMonitorList"),
+    createMonitorEmpty: document.getElementById("createMonitorEmpty")
     };
 
     let currentQueueId = null;
@@ -442,10 +464,6 @@
 
     function buildJoinLink(id) {
     return `${window.location.origin}${window.location.pathname}?queue=${id}`;
-    }
-
-    function buildMonitorLink(id) {
-    return `${window.location.origin}${window.location.pathname}?queue=${id}&mode=monitor`;
     }
 
     function calculateWaitMinutes(queue, memberId) {
@@ -507,10 +525,8 @@
         els.queueLink.textContent = link;
         renderQr(link);
         els.createResult.classList.remove("hidden");
-
-        els.openMonitorBtn.onclick = () => {
-        window.location.href = buildMonitorLink(queue.id);
-        };
+        renderCreateMonitor(queue);
+        startRealtime();
 
         clearNotice();
     } catch {
@@ -630,7 +646,65 @@
       if (views.join.style.display !== "none") {
       renderJoinStatus(queue);
       }
+
+      if (views.create.style.display !== "none" && !els.createResult.classList.contains("hidden")) {
+      renderCreateMonitor(queue);
+      }
     });
+    }
+
+    async function refreshCurrentQueue() {
+    if (!currentQueueId) {
+      return;
+    }
+
+    try {
+      const ref = doc(db, "queues", currentQueueId);
+      const snap = await getDoc(ref);
+      const queue = snap.data();
+      if (!queue) {
+        setNotice("Queue not found");
+        return;
+      }
+
+      if (views.create.style.display !== "none") {
+        renderCreateMonitor(queue);
+      }
+
+      if (views.monitor.style.display !== "none") {
+        renderMonitor(queue);
+      }
+    } catch {
+      setNotice("Error refreshing queue");
+    }
+    }
+
+    function renderCreateMonitor(queue) {
+    const members = queue.members || [];
+    const waiting = members.filter(m => !m.served);
+    const myIndex = waiting.findIndex(m => m.id === userId);
+
+    els.createMetricTotal.textContent = waiting.length;
+    els.createMetricServing.textContent = queue.servingName || "-";
+    els.createMetricAvg.textContent = queue.avgMinutes + " min";
+    els.createMetricPos.textContent = myIndex >= 0 ? myIndex + 1 : "-";
+
+    els.createMonitorList.innerHTML = "";
+    members.forEach((m, i) => {
+      const row = document.createElement("div");
+      row.className = "queue-row";
+      row.innerHTML = `
+      <div>
+        <strong>${i + 1}. ${m.name}</strong>
+      </div>
+      <span class="chip ${m.served ? "served" : "waiting"}">
+        ${m.served ? "Served" : "Waiting"}
+      </span>
+      `;
+      els.createMonitorList.appendChild(row);
+    });
+
+    els.createMonitorEmpty.classList.toggle("hidden", members.length > 0);
     }
 
     function renderMonitor(queue) {
@@ -696,6 +770,8 @@
     document.getElementById("joinBtn").onclick = joinQueue;
     document.getElementById("nextBtn").onclick = serveNext;
     document.getElementById("exitQueueBtn").onclick = exitQueue;
+    document.getElementById("createNextBtn").onclick = serveNext;
+    document.getElementById("createRefreshBtn").onclick = refreshCurrentQueue;
 
     initFromUrl();
     </script>
