@@ -303,7 +303,7 @@
   <div class="app-shell">
     <header class="hero" style="text-align:center;">
       <h1>Digital Queue Pro</h1>
-      <p class="app-version">Version <strong id="appVersion">1.00.3</strong></p>
+      <p class="app-version">Version <strong id="appVersion">1.00.4 Beta</strong></p>
     </header>
 
     <section id="globalNotice" class="notice info hidden" role="status"></section>
@@ -324,16 +324,9 @@
       <h2>Create Queue</h2>
 
       <div id="createSetupPanel" class="stack">
-        <div class="grid-two">
-          <div>
-            <label for="titleInput">Queue Name</label>
-            <input id="titleInput" placeholder="Example: Pharmacy Counter">
-          </div>
-
-          <div>
-            <label for="avgInput">Avg Time (minutes)</label>
-            <input id="avgInput" type="number" value="2" min="1">
-          </div>
+        <div>
+          <label for="titleInput">Queue Name</label>
+          <input id="titleInput" placeholder="Example: Pharmacy Counter">
         </div>
 
         <div class="toolbar">
@@ -344,9 +337,8 @@
 
       <div id="createResult" class="stack hidden">
         <label>Queue Details</label>
-        <div class="meta-grid" style="margin-bottom:10px;">
+        <div class="meta-grid" style="margin-bottom:10px; grid-template-columns: repeat(1, minmax(0, 1fr));">
           <div class="meta-card"><span>Queue Name</span><strong id="createQueueName">-</strong></div>
-          <div class="meta-card"><span>Avg Time</span><strong id="createQueueAvg">-</strong></div>
         </div>
 
         <div id="createSharePanel" class="section-box stack">
@@ -373,7 +365,7 @@
           <div class="meta-grid">
             <div class="meta-card"><span>Total</span><strong id="createMetricTotal">0</strong></div>
             <div class="meta-card"><span>Serving</span><strong id="createMetricServing">-</strong></div>
-            <div class="meta-card"><span>Avg</span><strong id="createMetricAvg">2 min</strong></div>
+            <div class="meta-card"><span>Avg Serve</span><strong id="createMetricAvg">-</strong></div>
             <div class="meta-card"><span>You</span><strong id="createMetricPos">-</strong></div>
           </div>
 
@@ -412,7 +404,7 @@
       <div class="meta-grid">
         <div class="meta-card"><span>Total</span><strong id="metricTotal">0</strong></div>
         <div class="meta-card"><span>Serving</span><strong id="metricServing">-</strong></div>
-        <div class="meta-card"><span>Avg</span><strong id="metricAvg">2 min</strong></div>
+        <div class="meta-card"><span>Avg Serve</span><strong id="metricAvg">-</strong></div>
         <div class="meta-card"><span>You</span><strong id="metricPos">-</strong></div>
       </div>
 
@@ -454,10 +446,11 @@
     monitor: document.getElementById("monitorView")
     };
 
+    const DEFAULT_AVG_MINUTES = 2;
+
     const els = {
     notice: document.getElementById("globalNotice"),
     titleInput: document.getElementById("titleInput"),
-    avgInput: document.getElementById("avgInput"),
     createResult: document.getElementById("createResult"),
     createSetupPanel: document.getElementById("createSetupPanel"),
     queueLink: document.getElementById("queueLink"),
@@ -466,7 +459,6 @@
     copyQrBtn: document.getElementById("copyQrBtn"),
     endQueueBtn: document.getElementById("endQueueBtn"),
     createQueueName: document.getElementById("createQueueName"),
-    createQueueAvg: document.getElementById("createQueueAvg"),
     nameInput: document.getElementById("nameInput"),
     joinStatus: document.getElementById("joinStatus"),
     queueTitle: document.getElementById("queueTitle"),
@@ -528,17 +520,65 @@
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
     }
 
-    function calculateWaitMinutes(queue, memberId) {
-    const avgMinutes = Number(queue.avgMinutes) || 0;
-    const waiting = (queue.members || []).filter(m => !m.served);
-    const waitingAhead = waiting.findIndex(m => m.id === memberId);
+    function getAverageMinutes(queue) {
+    if ((queue.completedServeCount || 0) > 0 && (queue.totalServeMs || 0) > 0) {
+      return queue.totalServeMs / queue.completedServeCount / 60000;
+    }
 
-    if (waitingAhead < 0) {
+    if (Number(queue.avgMinutes) > 0) {
+      return Number(queue.avgMinutes);
+    }
+
+    return DEFAULT_AVG_MINUTES;
+    }
+
+    function formatMinutes(value) {
+    const rounded = Math.max(1, Math.round(value));
+    return `${rounded} min`;
+    }
+
+    function normalizeQueue(queue, id = "") {
+    const safeQueue = queue || {};
+    return {
+      id: safeQueue.id || id,
+      title: safeQueue.title || "Queue",
+      members: Array.isArray(safeQueue.members) ? safeQueue.members : [],
+      servingName: safeQueue.servingName || "-",
+      servingMemberId: safeQueue.servingMemberId || null,
+      servingStartedAt: Number(safeQueue.servingStartedAt) || null,
+      totalServeMs: Number(safeQueue.totalServeMs) || 0,
+      completedServeCount: Number(safeQueue.completedServeCount) || 0,
+      avgMinutes: Number(safeQueue.avgMinutes) || 0
+    };
+    }
+
+    function getQueueOrder(queue) {
+    const unserved = (queue.members || []).filter(m => !m.served);
+    const servingIndex = unserved.findIndex(m => m.id === queue.servingMemberId);
+
+    if (servingIndex > -1) {
+      const [servingMember] = unserved.splice(servingIndex, 1);
+      return [servingMember, ...unserved];
+    }
+
+    return unserved;
+    }
+
+    function calculateWaitMinutes(queue, memberId) {
+    const order = getQueueOrder(queue);
+    const index = order.findIndex(m => m.id === memberId);
+
+    if (index < 0) {
       return null;
     }
 
+    const avgMinutes = getAverageMinutes(queue);
+    const isServing = queue.servingMemberId === memberId;
+    const waitingAhead = Math.max(0, index - (queue.servingMemberId ? 1 : 0));
+
     return {
-      position: waitingAhead + 1,
+      position: index + 1,
+      isServing,
       estimatedMinutes: waitingAhead * avgMinutes
     };
     }
@@ -551,8 +591,15 @@
       return;
     }
 
-    const minuteLabel = wait.estimatedMinutes === 1 ? "minute" : "minutes";
-    els.joinStatus.textContent = `You are #${wait.position} in line. Estimated wait: ${wait.estimatedMinutes} ${minuteLabel}.`;
+    if (wait.isServing) {
+      els.joinStatus.textContent = "You are currently being served.";
+      els.joinStatus.classList.remove("hidden");
+      return;
+    }
+
+    const rounded = Math.max(0, Math.round(wait.estimatedMinutes));
+    const minuteLabel = rounded === 1 ? "minute" : "minutes";
+    els.joinStatus.textContent = `You are #${wait.position} in line. Estimated wait: ${rounded} ${minuteLabel}.`;
     els.joinStatus.classList.remove("hidden");
     }
 
@@ -612,7 +659,6 @@
     els.createSetupPanel.classList.remove("hidden");
     els.createResult.classList.add("hidden");
     els.titleInput.value = "";
-    els.avgInput.value = "2";
     els.queueLink.textContent = "";
     els.qr.innerHTML = "";
     currentJoinLink = "";
@@ -620,7 +666,6 @@
     ownerQueueActive = false;
     sessionStorage.removeItem(OWNER_QUEUE_KEY);
     els.createQueueName.textContent = "-";
-    els.createQueueAvg.textContent = "-";
     }
 
     async function restoreOwnerQueueFromSession() {
@@ -632,17 +677,15 @@
     try {
       const ref = doc(db, "queues", storedQueueId);
       const snap = await getDoc(ref);
-      const queue = snap.data();
-
-      if (!queue) {
+      if (!snap.exists()) {
         sessionStorage.removeItem(OWNER_QUEUE_KEY);
         return false;
       }
+      const queue = normalizeQueue(snap.data(), storedQueueId);
 
       currentQueueId = storedQueueId;
       currentJoinLink = buildJoinLink(storedQueueId);
       els.createQueueName.textContent = queue.title;
-      els.createQueueAvg.textContent = `${queue.avgMinutes} min`;
       els.queueLink.textContent = currentJoinLink;
       renderQr(currentJoinLink);
       els.createSetupPanel.classList.add("hidden");
@@ -689,8 +732,6 @@
     // 🔥 CREATE QUEUE
     async function createQueue() {
     const title = els.titleInput.value.trim();
-    const avg = Number(els.avgInput.value);
-
     if (!title) {
         setNotice("Enter a queue name");
         return;
@@ -700,8 +741,12 @@
         const queue = {
         id: randomId(),
         title,
-        avgMinutes: avg || 2,
         servingName: "-",
+        servingMemberId: null,
+        servingStartedAt: null,
+        totalServeMs: 0,
+        completedServeCount: 0,
+        avgMinutes: 0,
         members: []
         };
 
@@ -712,7 +757,6 @@
         const link = buildJoinLink(queue.id);
         currentJoinLink = link;
         els.createQueueName.textContent = queue.title;
-        els.createQueueAvg.textContent = `${queue.avgMinutes} min`;
         els.queueLink.textContent = link;
         renderQr(link);
         els.createSetupPanel.classList.add("hidden");
@@ -740,7 +784,11 @@
     try {
         const ref = doc(db, "queues", currentQueueId);
         const snap = await getDoc(ref);
-        const queue = snap.data();
+      if (!snap.exists()) {
+      setNotice("Queue not found");
+      return;
+      }
+        const queue = normalizeQueue(snap.data(), currentQueueId);
 
         // prevent duplicate join
         const exists = queue.members.find(m => m.id === userId);
@@ -804,17 +852,45 @@
     try {
         const ref = doc(db, "queues", currentQueueId);
         const snap = await getDoc(ref);
-        const queue = snap.data();
+      if (!snap.exists()) {
+      setNotice("Queue not found");
+      return;
+      }
+        const queue = normalizeQueue(snap.data(), currentQueueId);
+
+        const now = Date.now();
+        let completedServeCount = queue.completedServeCount || 0;
+        let totalServeMs = queue.totalServeMs || 0;
+
+        if (queue.servingMemberId) {
+        const servingMember = queue.members.find(m => m.id === queue.servingMemberId && !m.served);
+        if (servingMember) {
+          servingMember.served = true;
+        }
+
+        if (queue.servingStartedAt) {
+          const elapsed = Math.max(0, now - queue.servingStartedAt);
+          if (elapsed > 0) {
+          totalServeMs += elapsed;
+          completedServeCount += 1;
+          }
+        }
+        }
 
         const next = queue.members.find(m => !m.served);
-        if (!next) return;
-
-        next.served = true;
-        queue.servingName = next.name;
+        const servingName = next ? next.name : "-";
+        const servingMemberId = next ? next.id : null;
+        const servingStartedAt = next ? now : null;
+        const avgMinutes = completedServeCount > 0 ? totalServeMs / completedServeCount / 60000 : 0;
 
         await updateDoc(ref, {
         members: queue.members,
-        servingName: queue.servingName
+        servingName,
+        servingMemberId,
+        servingStartedAt,
+        completedServeCount,
+        totalServeMs,
+        avgMinutes
         });
     } catch {
         setNotice("Error updating queue");
@@ -828,11 +904,11 @@
     const ref = doc(db, "queues", currentQueueId);
 
     unsubscribe = onSnapshot(ref, (snap) => {
-      const queue = snap.data();
-      if (!queue) {
+      if (!snap.exists()) {
       setNotice("Queue not found");
       return;
       }
+      const queue = normalizeQueue(snap.data(), currentQueueId);
 
       if (views.monitor.style.display !== "none") {
       renderMonitor(queue);
@@ -856,11 +932,11 @@
     try {
       const ref = doc(db, "queues", currentQueueId);
       const snap = await getDoc(ref);
-      const queue = snap.data();
-      if (!queue) {
+      if (!snap.exists()) {
         setNotice("Queue not found");
         return;
       }
+      const queue = normalizeQueue(snap.data(), currentQueueId);
 
       if (views.create.style.display !== "none") {
         renderCreateMonitor(queue);
@@ -876,24 +952,29 @@
 
     function renderCreateMonitor(queue) {
     const members = queue.members || [];
-    const waiting = members.filter(m => !m.served);
+    const waiting = getQueueOrder(queue);
     const myIndex = waiting.findIndex(m => m.id === userId);
+    const avgMinutes = getAverageMinutes(queue);
 
     els.createMetricTotal.textContent = waiting.length;
     els.createMetricServing.textContent = queue.servingName || "-";
-    els.createMetricAvg.textContent = queue.avgMinutes + " min";
+    els.createMetricAvg.textContent = formatMinutes(avgMinutes);
     els.createMetricPos.textContent = myIndex >= 0 ? myIndex + 1 : "-";
 
     els.createMonitorList.innerHTML = "";
     members.forEach((m, i) => {
       const row = document.createElement("div");
       row.className = "queue-row";
+      const isServing = queue.servingMemberId === m.id && !m.served;
+      const queuePos = waiting.findIndex(w => w.id === m.id);
+      const estimatedMinutes = queuePos > 0 ? Math.max(1, Math.round((queuePos - 1) * avgMinutes)) : 0;
       row.innerHTML = `
       <div>
         <strong>${i + 1}. ${m.name}</strong>
+        <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
       </div>
-      <span class="chip ${m.served ? "served" : "waiting"}">
-        ${m.served ? "Served" : "Waiting"}
+      <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
+        ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
       </span>
       `;
       els.createMonitorList.appendChild(row);
@@ -904,14 +985,15 @@
 
     function renderMonitor(queue) {
     const members = queue.members || [];
-    const waiting = members.filter(m => !m.served);
+    const waiting = getQueueOrder(queue);
+    const avgMinutes = getAverageMinutes(queue);
 
     const myIndex = waiting.findIndex(m => m.id === userId);
 
     els.queueTitle.textContent = queue.title;
     els.metricTotal.textContent = waiting.length;
-    els.metricServing.textContent = queue.servingName;
-    els.metricAvg.textContent = queue.avgMinutes + " min";
+    els.metricServing.textContent = queue.servingName || "-";
+    els.metricAvg.textContent = formatMinutes(avgMinutes);
     els.metricPos.textContent = myIndex >= 0 ? myIndex + 1 : "-";
 
     els.queueList.innerHTML = "";
@@ -919,12 +1001,16 @@
     members.forEach((m, i) => {
         const row = document.createElement("div");
         row.className = "queue-row";
+        const isServing = queue.servingMemberId === m.id && !m.served;
+        const queuePos = waiting.findIndex(w => w.id === m.id);
+        const estimatedMinutes = queuePos > 0 ? Math.max(1, Math.round((queuePos - 1) * avgMinutes)) : 0;
         row.innerHTML = `
         <div>
-            <strong>${i + 1}. ${m.name}</strong>
+          <strong>${i + 1}. ${m.name}</strong>
+          <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
         </div>
-        <span class="chip ${m.served ? "served" : "waiting"}">
-            ${m.served ? "Served" : "Waiting"}
+        <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
+          ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
         </span>
         `;
         els.queueList.appendChild(row);
