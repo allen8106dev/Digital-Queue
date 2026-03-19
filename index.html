@@ -258,6 +258,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
       background: #fff;
     }
 
@@ -280,6 +281,24 @@
     .chip.served {
       background: #dcf9e8;
       color: var(--success);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-danger {
+      background: #ffe9e9;
+      color: #a61f1f;
+      border: 1px solid #ffc3c3;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+    }
+
+    .btn-danger:hover {
+      background: #ffd6d6;
     }
 
     .hidden {
@@ -367,6 +386,7 @@
             <div class="meta-card"><span>Serving</span><strong id="createMetricServing">-</strong></div>
             <div class="meta-card"><span>Avg Serve</span><strong id="createMetricAvg">-</strong></div>
             <div class="meta-card"><span>You</span><strong id="createMetricPos">-</strong></div>
+            <div class="meta-card"><span>Queue Timer</span><strong id="createMetricTimer">00:00:00</strong></div>
           </div>
 
           <div id="createMonitorList" class="list"></div>
@@ -406,6 +426,7 @@
         <div class="meta-card"><span>Serving</span><strong id="metricServing">-</strong></div>
         <div class="meta-card"><span>Avg Serve</span><strong id="metricAvg">-</strong></div>
         <div class="meta-card"><span>You</span><strong id="metricPos">-</strong></div>
+        <div class="meta-card"><span>Queue Timer</span><strong id="metricTimer">00:00:00</strong></div>
       </div>
 
       <div id="queueList" class="list"></div>
@@ -467,6 +488,7 @@
     metricServing: document.getElementById("metricServing"),
     metricAvg: document.getElementById("metricAvg"),
     metricPos: document.getElementById("metricPos"),
+    metricTimer: document.getElementById("metricTimer"),
     queueList: document.getElementById("queueList"),
     emptyQueue: document.getElementById("emptyQueue"),
     createMonitorPanel: document.getElementById("createMonitorPanel"),
@@ -476,6 +498,7 @@
     createMetricServing: document.getElementById("createMetricServing"),
     createMetricAvg: document.getElementById("createMetricAvg"),
     createMetricPos: document.getElementById("createMetricPos"),
+    createMetricTimer: document.getElementById("createMetricTimer"),
     createMonitorList: document.getElementById("createMonitorList"),
     createMonitorEmpty: document.getElementById("createMonitorEmpty")
     };
@@ -485,7 +508,11 @@
     let currentQrUrl = "";
     let ownerQueueActive = false;
     let unsubscribe = null;
+    let queueTimerInterval = null;
+    let queueStartedAt = null;
     const OWNER_QUEUE_KEY = "dq_owner_queue_id";
+    const CLIENT_QUEUE_KEY = "dq_client_queue_id";
+    const CLIENT_NAME_KEY = "dq_client_name";
 
     // ✅ persistent user ID
     let userId = localStorage.getItem("dq_user");
@@ -548,8 +575,50 @@
       servingStartedAt: Number(safeQueue.servingStartedAt) || null,
       totalServeMs: Number(safeQueue.totalServeMs) || 0,
       completedServeCount: Number(safeQueue.completedServeCount) || 0,
-      avgMinutes: Number(safeQueue.avgMinutes) || 0
+      avgMinutes: Number(safeQueue.avgMinutes) || 0,
+      createdAt: Number(safeQueue.createdAt) || Date.now()
     };
+    }
+
+    function formatElapsed(ms) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function updateQueueTimer() {
+    if (!queueStartedAt) {
+      els.createMetricTimer.textContent = "00:00:00";
+      els.metricTimer.textContent = "00:00:00";
+      return;
+    }
+
+    const elapsed = Date.now() - queueStartedAt;
+    const value = formatElapsed(elapsed);
+    els.createMetricTimer.textContent = value;
+    els.metricTimer.textContent = value;
+    }
+
+    function startQueueTimer(createdAt) {
+    queueStartedAt = createdAt;
+    if (queueTimerInterval) {
+      clearInterval(queueTimerInterval);
+      queueTimerInterval = null;
+    }
+    updateQueueTimer();
+    queueTimerInterval = window.setInterval(updateQueueTimer, 1000);
+    }
+
+    function stopQueueTimer() {
+    queueStartedAt = null;
+    if (queueTimerInterval) {
+      clearInterval(queueTimerInterval);
+      queueTimerInterval = null;
+    }
+    updateQueueTimer();
     }
 
     function getQueueOrder(queue) {
@@ -585,21 +654,22 @@
 
     function renderJoinStatus(queue) {
     const wait = calculateWaitMinutes(queue, userId);
+    const me = (queue.members || []).find(m => m.id === userId);
 
-    if (!wait) {
+    if (!wait || !me) {
       els.joinStatus.classList.add("hidden");
       return;
     }
 
     if (wait.isServing) {
-      els.joinStatus.textContent = "You are currently being served.";
+      els.joinStatus.textContent = `${me.name} is currently being served in ${queue.title}.`;
       els.joinStatus.classList.remove("hidden");
       return;
     }
 
     const rounded = Math.max(0, Math.round(wait.estimatedMinutes));
     const minuteLabel = rounded === 1 ? "minute" : "minutes";
-    els.joinStatus.textContent = `You are #${wait.position} in line. Estimated wait: ${rounded} ${minuteLabel}.`;
+    els.joinStatus.textContent = `${me.name} is #${wait.position} in ${queue.title}. Estimated wait: ${rounded} ${minuteLabel}.`;
     els.joinStatus.classList.remove("hidden");
     }
 
@@ -666,6 +736,7 @@
     ownerQueueActive = false;
     sessionStorage.removeItem(OWNER_QUEUE_KEY);
     els.createQueueName.textContent = "-";
+    stopQueueTimer();
     }
 
     async function restoreOwnerQueueFromSession() {
@@ -694,6 +765,7 @@
       switchView(views.create);
       history.pushState({ ownerQueueGuard: true }, "", window.location.href);
       renderCreateMonitor(queue);
+      startQueueTimer(queue.createdAt);
       startRealtime();
       return true;
     } catch {
@@ -726,6 +798,7 @@
     clearNotice();
     switchView(views.home);
     history.replaceState({}, "", window.location.pathname);
+    stopQueueTimer();
     return true;
     }
 
@@ -741,6 +814,7 @@
         const queue = {
         id: randomId(),
         title,
+        createdAt: Date.now(),
         servingName: "-",
         servingMemberId: null,
         servingStartedAt: null,
@@ -765,6 +839,7 @@
         sessionStorage.setItem(OWNER_QUEUE_KEY, queue.id);
         history.pushState({ ownerQueueGuard: true }, "", window.location.href);
         renderCreateMonitor(queue);
+        startQueueTimer(queue.createdAt);
         startRealtime();
 
         clearNotice();
@@ -775,6 +850,11 @@
 
     // 🔥 JOIN QUEUE
     async function joinQueue() {
+    if (!currentQueueId) {
+      setNotice("Open a valid queue link before joining");
+      return;
+    }
+
     const name = els.nameInput.value.trim();
     if (!name) {
         setNotice("Enter your name");
@@ -802,7 +882,13 @@
         });
 
         await updateDoc(ref, { members: queue.members });
+        localStorage.setItem(CLIENT_NAME_KEY, name);
+        } else {
+        localStorage.setItem(CLIENT_NAME_KEY, exists.name || name);
         }
+
+        localStorage.setItem(CLIENT_QUEUE_KEY, currentQueueId);
+        els.nameInput.value = localStorage.getItem(CLIENT_NAME_KEY) || name;
 
         renderJoinStatus(queue);
         setNotice("Joined queue");
@@ -840,6 +926,9 @@
         }
 
         await updateDoc(ref, { members: updatedMembers });
+        localStorage.removeItem(CLIENT_QUEUE_KEY);
+        localStorage.removeItem(CLIENT_NAME_KEY);
+        els.joinStatus.classList.add("hidden");
         setNotice("You exited the queue");
         window.location.href = window.location.pathname;
       } catch {
@@ -897,6 +986,51 @@
     }
     }
 
+    async function removeClient(memberId) {
+    if (!currentQueueId || !memberId) {
+      return;
+    }
+
+    try {
+      const ref = doc(db, "queues", currentQueueId);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        setNotice("Queue not found");
+        return;
+      }
+
+      const queue = normalizeQueue(snap.data(), currentQueueId);
+      const target = queue.members.find(m => m.id === memberId);
+      if (!target) {
+        setNotice("Client already removed");
+        return;
+      }
+
+      const members = queue.members.filter(m => m.id !== memberId);
+      let servingMemberId = queue.servingMemberId;
+      let servingName = queue.servingName;
+      let servingStartedAt = queue.servingStartedAt;
+
+      if (queue.servingMemberId === memberId) {
+        const next = members.find(m => !m.served) || null;
+        servingMemberId = next ? next.id : null;
+        servingName = next ? next.name : "-";
+        servingStartedAt = next ? Date.now() : null;
+      }
+
+      await updateDoc(ref, {
+        members,
+        servingMemberId,
+        servingName,
+        servingStartedAt
+      });
+
+      setNotice(`${target.name} removed from queue`);
+    } catch {
+      setNotice("Error removing client");
+    }
+    }
+
     // 🔥 REALTIME
     function startRealtime() {
     if (unsubscribe) unsubscribe();
@@ -905,10 +1039,19 @@
 
     unsubscribe = onSnapshot(ref, (snap) => {
       if (!snap.exists()) {
+      if (localStorage.getItem(CLIENT_QUEUE_KEY) === currentQueueId) {
+        localStorage.removeItem(CLIENT_QUEUE_KEY);
+      }
+      stopQueueTimer();
       setNotice("Queue not found");
       return;
       }
       const queue = normalizeQueue(snap.data(), currentQueueId);
+      const userStillInQueue = (queue.members || []).some(m => m.id === userId);
+      if (!userStillInQueue && localStorage.getItem(CLIENT_QUEUE_KEY) === currentQueueId) {
+      localStorage.removeItem(CLIENT_QUEUE_KEY);
+      }
+      startQueueTimer(queue.createdAt);
 
       if (views.monitor.style.display !== "none") {
       renderMonitor(queue);
@@ -937,6 +1080,7 @@
         return;
       }
       const queue = normalizeQueue(snap.data(), currentQueueId);
+      startQueueTimer(queue.createdAt);
 
       if (views.create.style.display !== "none") {
         renderCreateMonitor(queue);
@@ -973,9 +1117,12 @@
         <strong>${i + 1}. ${m.name}</strong>
         <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
       </div>
-      <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
-        ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
-      </span>
+      <div class="row-actions">
+        <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
+          ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
+        </span>
+        <button class="btn-danger" data-remove-member-id="${m.id}" type="button">Remove</button>
+      </div>
       `;
       els.createMonitorList.appendChild(row);
     });
@@ -1009,9 +1156,12 @@
           <strong>${i + 1}. ${m.name}</strong>
           <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
         </div>
-        <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
-          ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
-        </span>
+        <div class="row-actions">
+          <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
+            ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
+          </span>
+          <button class="btn-danger" data-remove-member-id="${m.id}" type="button">Remove</button>
+        </div>
         `;
         els.queueList.appendChild(row);
     });
@@ -1026,16 +1176,39 @@
     const mode = params.get("mode");
 
     if (!id) {
+        const savedName = localStorage.getItem(CLIENT_NAME_KEY);
+        if (savedName) {
+          els.nameInput.value = savedName;
+        }
+
         const restored = await restoreOwnerQueueFromSession();
         if (restored) {
           clearNotice();
           return;
         }
+
+        const savedClientQueueId = localStorage.getItem(CLIENT_QUEUE_KEY);
+        if (savedClientQueueId) {
+          currentQueueId = savedClientQueueId;
+          switchView(views.join);
+          history.replaceState({}, "", `${window.location.pathname}?queue=${savedClientQueueId}`);
+          startRealtime();
+          clearNotice();
+          return;
+        }
+
         switchView(views.home);
         return;
     }
 
     currentQueueId = id;
+    if (mode !== "monitor") {
+      localStorage.setItem(CLIENT_QUEUE_KEY, id);
+    }
+    const savedName = localStorage.getItem(CLIENT_NAME_KEY);
+    if (savedName) {
+      els.nameInput.value = savedName;
+    }
 
     if (mode === "monitor") {
         switchView(views.monitor);
@@ -1071,6 +1244,28 @@
     els.endQueueBtn.onclick = endQueueAndReturnHome;
     els.copyLinkBtn.onclick = () => copyText(currentJoinLink, "Queue link copied");
     els.copyQrBtn.onclick = () => copyText(currentJoinLink, "Queue link copied");
+    els.createMonitorList.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const memberId = target.getAttribute("data-remove-member-id");
+    if (!memberId) {
+      return;
+    }
+    removeClient(memberId);
+    });
+    els.queueList.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const memberId = target.getAttribute("data-remove-member-id");
+    if (!memberId) {
+      return;
+    }
+    removeClient(memberId);
+    });
 
     async function bootstrap() {
     await initFromUrl();
