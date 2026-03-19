@@ -193,6 +193,70 @@
       padding: 14px;
     }
 
+    .join-header-card {
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: #fbfdff;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .join-header-row {
+      display: grid;
+      gap: 4px;
+    }
+
+    .join-header-row small {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .join-header-row strong {
+      font-size: 1.1rem;
+      word-break: break-word;
+    }
+
+    .personal-title {
+      display: grid;
+      gap: 4px;
+    }
+
+    .personal-title p {
+      color: var(--muted);
+    }
+
+    .personal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .personal-card {
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      background: #fcfdff;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .personal-card span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+
+    .personal-card strong {
+      font-size: 1.04rem;
+      word-break: break-word;
+    }
+
     .section-title {
       margin: 0 0 8px;
       font-size: 1rem;
@@ -312,7 +376,8 @@
 
       .grid-two,
       .meta-grid,
-      .home-grid {
+      .home-grid,
+      .personal-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -402,15 +467,50 @@
     <section id="joinView" class="view panel stack" hidden>
       <h2>Join Queue</h2>
 
+      <div class="join-header-card">
+        <div class="join-header-row">
+          <small>Queue Name</small>
+          <strong id="joinQueueName">-</strong>
+        </div>
+        <div class="join-header-row">
+          <small>Queue Code</small>
+          <strong id="joinQueueCode">-</strong>
+        </div>
+      </div>
+
       <label for="nameInput">Your Name</label>
       <input id="nameInput" placeholder="Your name">
 
       <div class="toolbar">
         <button class="btn-primary" id="joinBtn" type="button">Join</button>
+        <button class="btn-ghost" id="toHomeFromJoin" type="button">Back</button>
         <button class="btn-ghost" id="exitQueueBtn" type="button">Exit Queue</button>
       </div>
 
       <div id="joinStatus" class="status-block hidden"></div>
+    </section>
+
+    <section id="myQueueView" class="view panel stack" hidden>
+      <div class="personal-title">
+        <h2>Your Queue Details</h2>
+        <p>Track your live queue status below.</p>
+      </div>
+
+      <div class="personal-grid">
+        <div class="personal-card"><span>Queue Name</span><strong id="myQueueName">-</strong></div>
+        <div class="personal-card"><span>Queue Code</span><strong id="myQueueCode">-</strong></div>
+        <div class="personal-card"><span>Your Name</span><strong id="myQueueUserName">-</strong></div>
+        <div class="personal-card"><span>Your Position</span><strong id="myQueuePosition">-</strong></div>
+        <div class="personal-card"><span>ETA</span><strong id="myQueueEta">-</strong></div>
+        <div class="personal-card"><span>Now Serving</span><strong id="myQueueServing">-</strong></div>
+      </div>
+
+      <div id="myQueueNote" class="status-block">Waiting for your queue details...</div>
+
+      <div class="toolbar">
+        <button class="btn-ghost" id="myQueueBackBtn" type="button">Back to Join</button>
+        <button class="btn-danger" id="myQueueExitBtn" type="button">Exit Queue</button>
+      </div>
     </section>
 
     <section id="monitorView" class="view panel stack" hidden>
@@ -464,6 +564,7 @@
     home: document.getElementById("homeView"),
     create: document.getElementById("createView"),
     join: document.getElementById("joinView"),
+    myQueue: document.getElementById("myQueueView"),
     monitor: document.getElementById("monitorView")
     };
 
@@ -480,8 +581,17 @@
     copyQrBtn: document.getElementById("copyQrBtn"),
     endQueueBtn: document.getElementById("endQueueBtn"),
     createQueueName: document.getElementById("createQueueName"),
+    joinQueueName: document.getElementById("joinQueueName"),
+    joinQueueCode: document.getElementById("joinQueueCode"),
     nameInput: document.getElementById("nameInput"),
     joinStatus: document.getElementById("joinStatus"),
+    myQueueName: document.getElementById("myQueueName"),
+    myQueueCode: document.getElementById("myQueueCode"),
+    myQueueUserName: document.getElementById("myQueueUserName"),
+    myQueuePosition: document.getElementById("myQueuePosition"),
+    myQueueEta: document.getElementById("myQueueEta"),
+    myQueueServing: document.getElementById("myQueueServing"),
+    myQueueNote: document.getElementById("myQueueNote"),
     queueTitle: document.getElementById("queueTitle"),
     nextBtn: document.getElementById("nextBtn"),
     metricTotal: document.getElementById("metricTotal"),
@@ -671,6 +781,42 @@
     const minuteLabel = rounded === 1 ? "minute" : "minutes";
     els.joinStatus.textContent = `${me.name} is #${wait.position} in ${queue.title}. Estimated wait: ${rounded} ${minuteLabel}.`;
     els.joinStatus.classList.remove("hidden");
+    }
+
+    function renderJoinSummary(queue) {
+    els.joinQueueName.textContent = queue.title || "Queue";
+    els.joinQueueCode.textContent = queue.id || currentQueueId || "-";
+    }
+
+    function renderMyQueueDetails(queue) {
+    const wait = calculateWaitMinutes(queue, userId);
+    const me = (queue.members || []).find(m => m.id === userId);
+
+    els.myQueueName.textContent = queue.title || "Queue";
+    els.myQueueCode.textContent = queue.id || currentQueueId || "-";
+    els.myQueueServing.textContent = queue.servingName || "-";
+
+    if (!me || !wait) {
+      els.myQueueUserName.textContent = localStorage.getItem(CLIENT_NAME_KEY) || "-";
+      els.myQueuePosition.textContent = "-";
+      els.myQueueEta.textContent = "-";
+      els.myQueueNote.textContent = "You are not currently in this queue.";
+      return;
+    }
+
+    els.myQueueUserName.textContent = me.name;
+    els.myQueuePosition.textContent = String(wait.position);
+
+    if (wait.isServing) {
+      els.myQueueEta.textContent = "Now";
+      els.myQueueNote.textContent = `${me.name}, it is your turn now.`;
+      return;
+    }
+
+    const rounded = Math.max(0, Math.round(wait.estimatedMinutes));
+    const minuteLabel = rounded === 1 ? "minute" : "minutes";
+    els.myQueueEta.textContent = `${rounded} ${minuteLabel}`;
+    els.myQueueNote.textContent = `${me.name}, you are #${wait.position} in ${queue.title}.`;
     }
 
     function renderQr(link) {
@@ -890,7 +1036,10 @@
         localStorage.setItem(CLIENT_QUEUE_KEY, currentQueueId);
         els.nameInput.value = localStorage.getItem(CLIENT_NAME_KEY) || name;
 
+        renderJoinSummary(queue);
         renderJoinStatus(queue);
+        renderMyQueueDetails(queue);
+        switchView(views.myQueue);
         setNotice("Joined queue");
     } catch {
         setNotice("Error joining queue");
@@ -1047,6 +1196,7 @@
       return;
       }
       const queue = normalizeQueue(snap.data(), currentQueueId);
+      renderJoinSummary(queue);
       const userStillInQueue = (queue.members || []).some(m => m.id === userId);
       if (!userStillInQueue && localStorage.getItem(CLIENT_QUEUE_KEY) === currentQueueId) {
       localStorage.removeItem(CLIENT_QUEUE_KEY);
@@ -1059,6 +1209,10 @@
 
       if (views.join.style.display !== "none") {
       renderJoinStatus(queue);
+      }
+
+      if (views.myQueue.style.display !== "none") {
+      renderMyQueueDetails(queue);
       }
 
       if (views.create.style.display !== "none" && !els.createResult.classList.contains("hidden")) {
@@ -1081,6 +1235,7 @@
       }
       const queue = normalizeQueue(snap.data(), currentQueueId);
       startQueueTimer(queue.createdAt);
+      renderJoinSummary(queue);
 
       if (views.create.style.display !== "none") {
         renderCreateMonitor(queue);
@@ -1190,7 +1345,7 @@
         const savedClientQueueId = localStorage.getItem(CLIENT_QUEUE_KEY);
         if (savedClientQueueId) {
           currentQueueId = savedClientQueueId;
-          switchView(views.join);
+          switchView(views.myQueue);
           history.replaceState({}, "", `${window.location.pathname}?queue=${savedClientQueueId}`);
           startRealtime();
           clearNotice();
@@ -1214,7 +1369,12 @@
         switchView(views.monitor);
         startRealtime();
     } else {
+      const savedName = localStorage.getItem(CLIENT_NAME_KEY);
+      if (savedName) {
+        switchView(views.myQueue);
+      } else {
         switchView(views.join);
+      }
       startRealtime();
     }
     }
@@ -1222,6 +1382,8 @@
     // 🎯 NAVIGATION
     document.getElementById("goCreate").onclick = () => switchView(views.create);
     document.getElementById("goJoin").onclick = () => switchView(views.join);
+    document.getElementById("toHomeFromJoin").onclick = () => switchView(views.home);
+    document.getElementById("myQueueBackBtn").onclick = () => switchView(views.join);
     document.getElementById("backFromCreateSetup").onclick = () => switchView(views.home);
     window.addEventListener("popstate", async () => {
       if (!ownerQueueActive) {
@@ -1239,6 +1401,7 @@
     document.getElementById("joinBtn").onclick = joinQueue;
     document.getElementById("nextBtn").onclick = serveNext;
     document.getElementById("exitQueueBtn").onclick = exitQueue;
+    document.getElementById("myQueueExitBtn").onclick = exitQueue;
     document.getElementById("createNextBtn").onclick = serveNext;
     document.getElementById("createRefreshBtn").onclick = refreshCurrentQueue;
     els.endQueueBtn.onclick = endQueueAndReturnHome;
