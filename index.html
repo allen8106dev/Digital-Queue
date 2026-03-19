@@ -186,6 +186,34 @@
       word-break: break-all;
     }
 
+    .section-box {
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: #fcfdff;
+      padding: 14px;
+    }
+
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .copy-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .copy-mini {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+      background: #f4f7ff;
+      color: #1f355f;
+      border: 1px solid #d8e3ff;
+    }
+
     #qr img {
       width: min(220px, 100%);
       border: 1px solid var(--stroke);
@@ -275,7 +303,7 @@
   <div class="app-shell">
     <header class="hero" style="text-align:center;">
       <h1>Digital Queue Pro</h1>
-      <p class="app-version">Version <strong id="appVersion">1.00.2</strong></p>
+      <p class="app-version">Version <strong id="appVersion">1.00.3</strong></p>
     </header>
 
     <section id="globalNotice" class="notice info hidden" role="status"></section>
@@ -295,33 +323,48 @@
     <section id="createView" class="view panel stack" hidden>
       <h2>Create Queue</h2>
 
-      <div class="grid-two">
-        <div>
-          <label for="titleInput">Queue Name</label>
-          <input id="titleInput" placeholder="Example: Pharmacy Counter">
+      <div id="createSetupPanel" class="stack">
+        <div class="grid-two">
+          <div>
+            <label for="titleInput">Queue Name</label>
+            <input id="titleInput" placeholder="Example: Pharmacy Counter">
+          </div>
+
+          <div>
+            <label for="avgInput">Avg Time (minutes)</label>
+            <input id="avgInput" type="number" value="2" min="1">
+          </div>
         </div>
 
-        <div>
-          <label for="avgInput">Avg Time (minutes)</label>
-          <input id="avgInput" type="number" value="2" min="1">
+        <div class="toolbar">
+          <button class="btn-primary" id="createBtn" type="button">Create</button>
+          <button class="btn-ghost" id="backFromCreateSetup" type="button">Back</button>
         </div>
       </div>
 
-      <div class="toolbar">
-        <button class="btn-primary" id="createBtn" type="button">Create</button>
-        <button class="btn-ghost" id="backFromCreate" type="button">Back</button>
-      </div>
+      <div id="createResult" class="stack hidden">
+        <label>Queue Details</label>
+        <div class="meta-grid" style="margin-bottom:10px;">
+          <div class="meta-card"><span>Queue Name</span><strong id="createQueueName">-</strong></div>
+          <div class="meta-card"><span>Avg Time</span><strong id="createQueueAvg">-</strong></div>
+        </div>
 
-      <div id="createResult" class="hidden">
-        <label>Queue Link</label>
-        <div id="queueLink" class="status-block"></div>
-        <button class="btn-ghost" id="copyLinkBtn" type="button">Copy Link</button>
+        <div id="createSharePanel" class="section-box stack">
+          <h3 class="section-title">Queue QR & Link</h3>
+          <div class="copy-row">
+            <label style="margin-bottom:0;">QR Code</label>
+            <button class="copy-mini" id="copyQrBtn" type="button">Copy</button>
+          </div>
+          <div id="qr"></div>
+          <div class="copy-row">
+            <label style="margin-bottom:0;">Queue Link</label>
+            <button class="copy-mini" id="copyLinkBtn" type="button">Copy</button>
+          </div>
+          <div id="queueLink" class="status-block"></div>
+        </div>
 
-        <label style="margin-top:10px;">QR Code</label>
-        <div id="qr"></div>
-
-        <div id="createMonitorPanel" class="stack" style="margin-top:12px;">
-          <label>Live Queue</label>
+        <div id="createMonitorPanel" class="section-box stack">
+          <h3 class="section-title">Live Queue</h3>
           <div class="toolbar">
             <button class="btn-primary" id="createNextBtn" type="button">Serve Next</button>
             <button class="btn-ghost" id="createRefreshBtn" type="button">Refresh</button>
@@ -336,6 +379,10 @@
 
           <div id="createMonitorList" class="list"></div>
           <p id="createMonitorEmpty">No one in queue</p>
+        </div>
+
+        <div class="toolbar" style="justify-content:flex-end;">
+          <button class="btn-ghost" id="endQueueBtn" type="button">End Queue</button>
         </div>
       </div>
     </section>
@@ -381,6 +428,7 @@
     doc,
     setDoc,
     getDoc,
+    deleteDoc,
     updateDoc,
     onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -411,8 +459,14 @@
     titleInput: document.getElementById("titleInput"),
     avgInput: document.getElementById("avgInput"),
     createResult: document.getElementById("createResult"),
+    createSetupPanel: document.getElementById("createSetupPanel"),
     queueLink: document.getElementById("queueLink"),
     qr: document.getElementById("qr"),
+    copyLinkBtn: document.getElementById("copyLinkBtn"),
+    copyQrBtn: document.getElementById("copyQrBtn"),
+    endQueueBtn: document.getElementById("endQueueBtn"),
+    createQueueName: document.getElementById("createQueueName"),
+    createQueueAvg: document.getElementById("createQueueAvg"),
     nameInput: document.getElementById("nameInput"),
     joinStatus: document.getElementById("joinStatus"),
     queueTitle: document.getElementById("queueTitle"),
@@ -435,7 +489,11 @@
     };
 
     let currentQueueId = null;
+    let currentJoinLink = "";
+    let currentQrUrl = "";
+    let ownerQueueActive = false;
     let unsubscribe = null;
+    const OWNER_QUEUE_KEY = "dq_owner_queue_id";
 
     // ✅ persistent user ID
     let userId = localStorage.getItem("dq_user");
@@ -464,6 +522,10 @@
 
     function buildJoinLink(id) {
     return `${window.location.origin}${window.location.pathname}?queue=${id}`;
+    }
+
+    function buildQrUrl(link) {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
     }
 
     function calculateWaitMinutes(queue, memberId) {
@@ -495,7 +557,133 @@
     }
 
     function renderQr(link) {
-    els.qr.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${link}">`;
+    currentQrUrl = buildQrUrl(link);
+    els.qr.innerHTML = `<img src="${currentQrUrl}" alt="Queue QR code">`;
+    }
+
+    function legacyCopyText(text) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.focus();
+    area.select();
+
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } catch {
+      copied = false;
+    }
+
+    document.body.removeChild(area);
+    return copied;
+    }
+
+    async function copyText(text, successMessage) {
+    if (!text) {
+      setNotice("Nothing to copy yet");
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const copied = legacyCopyText(text);
+        if (!copied) {
+          throw new Error("Clipboard unavailable");
+        }
+      }
+      setNotice(successMessage);
+    } catch {
+      const copied = legacyCopyText(text);
+      if (copied) {
+        setNotice(successMessage);
+      } else {
+        setNotice("Copy failed");
+      }
+    }
+    }
+
+    function resetCreateView() {
+    els.createSetupPanel.classList.remove("hidden");
+    els.createResult.classList.add("hidden");
+    els.titleInput.value = "";
+    els.avgInput.value = "2";
+    els.queueLink.textContent = "";
+    els.qr.innerHTML = "";
+    currentJoinLink = "";
+    currentQrUrl = "";
+    ownerQueueActive = false;
+    sessionStorage.removeItem(OWNER_QUEUE_KEY);
+    els.createQueueName.textContent = "-";
+    els.createQueueAvg.textContent = "-";
+    }
+
+    async function restoreOwnerQueueFromSession() {
+    const storedQueueId = sessionStorage.getItem(OWNER_QUEUE_KEY);
+    if (!storedQueueId) {
+      return false;
+    }
+
+    try {
+      const ref = doc(db, "queues", storedQueueId);
+      const snap = await getDoc(ref);
+      const queue = snap.data();
+
+      if (!queue) {
+        sessionStorage.removeItem(OWNER_QUEUE_KEY);
+        return false;
+      }
+
+      currentQueueId = storedQueueId;
+      currentJoinLink = buildJoinLink(storedQueueId);
+      els.createQueueName.textContent = queue.title;
+      els.createQueueAvg.textContent = `${queue.avgMinutes} min`;
+      els.queueLink.textContent = currentJoinLink;
+      renderQr(currentJoinLink);
+      els.createSetupPanel.classList.add("hidden");
+      els.createResult.classList.remove("hidden");
+      ownerQueueActive = true;
+      switchView(views.create);
+      history.pushState({ ownerQueueGuard: true }, "", window.location.href);
+      renderCreateMonitor(queue);
+      startRealtime();
+      return true;
+    } catch {
+      return false;
+    }
+    }
+
+    async function endQueueAndReturnHome() {
+    const confirmed = window.confirm("Going back will end this queue for everyone. Continue?");
+    if (!confirmed) {
+      return false;
+    }
+
+    try {
+      if (currentQueueId) {
+        await deleteDoc(doc(db, "queues", currentQueueId));
+      }
+    } catch {
+      setNotice("Error ending queue");
+      return false;
+    }
+
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+
+    currentQueueId = null;
+    resetCreateView();
+    clearNotice();
+    switchView(views.home);
+    history.replaceState({}, "", window.location.pathname);
+    return true;
     }
 
     // 🔥 CREATE QUEUE
@@ -522,9 +710,16 @@
         currentQueueId = queue.id;
 
         const link = buildJoinLink(queue.id);
+        currentJoinLink = link;
+        els.createQueueName.textContent = queue.title;
+        els.createQueueAvg.textContent = `${queue.avgMinutes} min`;
         els.queueLink.textContent = link;
         renderQr(link);
+        els.createSetupPanel.classList.add("hidden");
         els.createResult.classList.remove("hidden");
+        ownerQueueActive = true;
+        sessionStorage.setItem(OWNER_QUEUE_KEY, queue.id);
+        history.pushState({ ownerQueueGuard: true }, "", window.location.href);
         renderCreateMonitor(queue);
         startRealtime();
 
@@ -739,12 +934,17 @@
     }
 
     // 🔁 INIT
-    function initFromUrl() {
+    async function initFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("queue");
     const mode = params.get("mode");
 
     if (!id) {
+        const restored = await restoreOwnerQueueFromSession();
+        if (restored) {
+          clearNotice();
+          return;
+        }
         switchView(views.home);
         return;
     }
@@ -763,7 +963,17 @@
     // 🎯 NAVIGATION
     document.getElementById("goCreate").onclick = () => switchView(views.create);
     document.getElementById("goJoin").onclick = () => switchView(views.join);
-    document.getElementById("backFromCreate").onclick = () => switchView(views.home);
+    document.getElementById("backFromCreateSetup").onclick = () => switchView(views.home);
+    window.addEventListener("popstate", async () => {
+      if (!ownerQueueActive) {
+        return;
+      }
+
+      const ended = await endQueueAndReturnHome();
+      if (!ended) {
+        history.pushState({ ownerQueueGuard: true }, "", window.location.href);
+      }
+    });
 
     // 🎯 ACTIONS
     document.getElementById("createBtn").onclick = createQueue;
@@ -772,8 +982,15 @@
     document.getElementById("exitQueueBtn").onclick = exitQueue;
     document.getElementById("createNextBtn").onclick = serveNext;
     document.getElementById("createRefreshBtn").onclick = refreshCurrentQueue;
+    els.endQueueBtn.onclick = endQueueAndReturnHome;
+    els.copyLinkBtn.onclick = () => copyText(currentJoinLink, "Queue link copied");
+    els.copyQrBtn.onclick = () => copyText(currentJoinLink, "Queue link copied");
 
-    initFromUrl();
+    async function bootstrap() {
+    await initFromUrl();
+    }
+
+    bootstrap();
     </script>
 </body>
 </html>
