@@ -618,11 +618,6 @@ if (els.joinEntryBackBtn) {
   els.joinEntryBackBtn.onclick = goHome;
 }
 
-const joinEntryTopBackBtn = document.getElementById("joinEntryTopBackBtn");
-if (joinEntryTopBackBtn) {
-  joinEntryTopBackBtn.onclick = goHome;
-}
-
 if (els.joinEntryContinueBtn) {
   els.joinEntryContinueBtn.onclick = async () => {
     await continueJoinEntry();
