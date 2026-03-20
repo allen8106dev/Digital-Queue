@@ -51,21 +51,20 @@ body {
 .navbar-content {
   max-width: 820px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 8px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: grid;
+  gap: 2px;
 }
 
 .brand-title {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
   -webkit-background-clip: text;
@@ -75,7 +74,7 @@ body {
 
 .navbar-actions {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   align-items: center;
 }
 
@@ -86,11 +85,11 @@ body {
 .account-trigger {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: #f8fafc;
   border: 1px solid var(--stroke);
   border-radius: 999px;
-  padding: 6px 10px 6px 6px;
+  padding: 4px 8px 4px 4px;
   transition: var(--transition);
 }
 
@@ -106,8 +105,8 @@ body {
 }
 
 .top-right-logo {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   overflow: hidden;
   display: grid;
@@ -129,7 +128,7 @@ body {
 }
 
 .account-label {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--muted);
@@ -137,7 +136,7 @@ body {
 }
 
 #accountMenuState {
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   color: var(--text);
   max-width: 150px;
   white-space: nowrap;
@@ -301,8 +300,9 @@ h3 {
 
 .app-version {
   color: var(--muted);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
   margin: 0;
 }
 
@@ -743,6 +743,11 @@ button {
   background: var(--primary-light);
 }
 
+.share-icon {
+  margin-right: 4px;
+  font-size: 0.9em;
+}
+
 #qr img {
   width: min(220px, 100%);
   border: 2px solid var(--stroke);
@@ -927,11 +932,15 @@ body.live-queue-mode #createSetupPanel {
   }
 
   .navbar-content {
-    padding: 10px 16px;
+    padding: 7px 12px;
   }
 
   .brand-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
+  }
+
+  .app-version {
+    font-size: 0.66rem;
   }
 
   .app-shell {
@@ -1009,7 +1018,7 @@ body.live-queue-mode #createSetupPanel {
 
   .navbar-actions {
     flex-direction: row;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
   }
 

@@ -1,5 +1,4 @@
 import { state, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY } from "./state.js";
-import { copyText } from "./utils.js";
 import {
   views,
   els,
@@ -146,11 +145,57 @@ async function shareQueueLink() {
       setNotice("Queue link shared");
       return;
     } catch {
-      // fall back to clipboard copy
+      setNotice("Sharing was canceled");
+      return;
     }
   }
 
-  copyText(state.currentJoinLink, "Queue link copied", setNotice);
+  setNotice("Sharing is not supported on this device");
+}
+
+async function shareQueueQr() {
+  if (!state.currentJoinLink || !state.currentQrUrl) {
+    setNotice("Queue QR is not ready yet");
+    return;
+  }
+
+  const queueName = (els.createQueueName?.textContent || "Queue").trim() || "Queue";
+  const shareText = `Scan to join ${queueName}`;
+
+  if (!navigator.share) {
+    setNotice("Sharing is not supported on this device");
+    return;
+  }
+
+  try {
+    const response = await fetch(state.currentQrUrl, { mode: "cors" });
+    if (!response.ok) {
+      throw new Error("qr_fetch_failed");
+    }
+
+    const qrBlob = await response.blob();
+    const qrFile = new File([qrBlob], "queue-qr.png", { type: qrBlob.type || "image/png" });
+    const payloadWithFile = {
+      title: "Join my queue",
+      text: shareText,
+      files: [qrFile]
+    };
+
+    if (navigator.canShare && navigator.canShare({ files: [qrFile] })) {
+      await navigator.share(payloadWithFile);
+      setNotice("Queue QR shared");
+      return;
+    }
+
+    await navigator.share({
+      title: "Join my queue",
+      text: `${shareText}\n${state.currentJoinLink}`,
+      url: state.currentJoinLink
+    });
+    setNotice("Queue details shared");
+  } catch {
+    setNotice("Sharing was canceled");
+  }
 }
 
 function isMobileDevice() {
@@ -609,8 +654,6 @@ els.endQueueBtn.onclick = async () => {
   const { endQueueAndReturnHome } = await getQueueService();
   endQueueAndReturnHome();
 };
-els.copyLinkBtn.onclick = () => copyText(state.currentJoinLink, "Queue link copied", setNotice);
-els.copyQrBtn.onclick = () => copyText(state.currentJoinLink, "Queue link copied", setNotice);
 if (els.shareLinkBtn) {
   els.shareLinkBtn.onclick = async () => {
     await shareQueueLink();
@@ -618,17 +661,7 @@ if (els.shareLinkBtn) {
 }
 if (els.shareQrBtn) {
   els.shareQrBtn.onclick = async () => {
-    await shareQueueLink();
-  };
-}
-if (els.copyQueueNameBtn) {
-  els.copyQueueNameBtn.onclick = () => {
-    copyText(els.createQueueName?.textContent || "", "Queue name copied", setNotice);
-  };
-}
-if (els.copyStartTimeBtn) {
-  els.copyStartTimeBtn.onclick = () => {
-    copyText(els.createStartTime?.textContent || "", "Queue start time copied", setNotice);
+    await shareQueueQr();
   };
 }
 if (els.queueDetailsToggle && els.queueDetailsDrawer) {
