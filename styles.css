@@ -1355,3 +1355,74 @@ body.live-queue-mode #createSetupPanel {
     padding: 12px 14px;
   }
 }
+
+@media (max-width: 720px) and (orientation: portrait) {
+  .app-shell {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .home-actions-box,
+  #createView,
+  #joinEntryView {
+    width: 100%;
+    max-width: 560px;
+    height: var(--entry-box-height);
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  #createView,
+  #joinEntryView {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  #createView.stack,
+  #joinEntryView.stack {
+    gap: 8px;
+  }
+
+  .action-tile {
+    padding: 18px 10px;
+  }
+
+  .action-tile h3 {
+    font-size: 1rem;
+  }
+
+  #joinEntryScannerActions,
+  #joinEntryView .toolbar,
+  #createView .toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  #joinEntryScannerActions button,
+  #joinEntryView .toolbar button,
+  #createView .toolbar button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .hero-auth-panel {
+    position: absolute;
+    left: 50%;
+    bottom: -3px;
+    transform: translateX(-50%);
+  }
+
+  .home-auth-message {
+    white-space: nowrap;
+    font-size: clamp(1.06rem, 4.2vw, 1.24rem);
+  }
+}
