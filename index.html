@@ -4,390 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Queue Pro</title>
-  <style>
-    :root {
-      --bg: #f4f6fb;
-      --panel: #ffffff;
-      --text: #1d2432;
-      --muted: #69758d;
-      --primary: #007f5f;
-      --primary-dark: #00664c;
-      --stroke: #dce2ee;
-      --success: #1b9e5a;
-      --warn: #b57300;
-      --shadow: 0 10px 30px rgba(20, 38, 76, 0.08);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 20% 10%, rgba(0, 127, 95, 0.1), transparent 35%),
-        radial-gradient(circle at 85% 80%, rgba(26, 115, 232, 0.1), transparent 35%),
-        var(--bg);
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .app-shell {
-      max-width: 820px;
-      margin: 0 auto;
-      display: grid;
-      gap: 14px;
-    }
-
-    .hero {
-      background: var(--panel);
-      border: 1px solid var(--stroke);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 20px;
-    }
-
-    h1, h2, h3, p {
-      margin: 0;
-    }
-
-    h1 {
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      margin-bottom: 6px;
-    }
-
-    h2 {
-      margin-bottom: 14px;
-    }
-
-    .app-version {
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .notice {
-      border-radius: 12px;
-      padding: 10px 12px;
-      border: 1px solid var(--stroke);
-      min-height: 42px;
-      display: flex;
-      align-items: center;
-      background: #eef4ff;
-      color: #25457a;
-    }
-
-    .notice.hidden {
-      display: none;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--stroke);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 20px;
-    }
-
-    .view {
-      display: none;
-    }
-
-    .view.active {
-      display: block;
-    }
-
-    .stack {
-      display: grid;
-      gap: 12px;
-    }
-
-    .home-grid {
-      display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .action-tile {
-      border: 1px solid var(--stroke);
-      border-radius: 14px;
-      padding: 20px;
-      background: #fbfdff;
-      cursor: pointer;
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-
-    .action-tile:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--stroke);
-      border-radius: 10px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: #7ba7ff;
-      box-shadow: 0 0 0 3px rgba(123, 167, 255, 0.2);
-    }
-
-    .grid-two {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-    }
-
-    button {
-      border: 0;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-    }
-
-    .btn-ghost {
-      background: #f4f7ff;
-      color: #1f355f;
-      border: 1px solid #d8e3ff;
-    }
-
-    .status-block {
-      border: 1px dashed var(--stroke);
-      border-radius: 10px;
-      background: #fafcff;
-      padding: 10px;
-      word-break: break-all;
-    }
-
-    .section-box {
-      border: 1px solid var(--stroke);
-      border-radius: 14px;
-      background: #fcfdff;
-      padding: 14px;
-    }
-
-    .join-header-card {
-      border: 1px solid var(--stroke);
-      border-radius: 14px;
-      background: #fbfdff;
-      padding: 14px;
-      display: grid;
-      gap: 10px;
-    }
-
-    .join-header-row {
-      display: grid;
-      gap: 4px;
-    }
-
-    .join-header-row small {
-      color: var(--muted);
-      font-size: 0.82rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .join-header-row strong {
-      font-size: 1.1rem;
-      word-break: break-word;
-    }
-
-    .personal-title {
-      display: grid;
-      gap: 4px;
-    }
-
-    .personal-title p {
-      color: var(--muted);
-    }
-
-    .personal-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .personal-card {
-      border: 1px solid var(--stroke);
-      border-radius: 12px;
-      background: #fcfdff;
-      padding: 12px;
-      display: grid;
-      gap: 4px;
-    }
-
-    .personal-card span {
-      color: var(--muted);
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      font-weight: 600;
-    }
-
-    .personal-card strong {
-      font-size: 1.04rem;
-      word-break: break-word;
-    }
-
-    .section-title {
-      margin: 0 0 8px;
-      font-size: 1rem;
-    }
-
-    .copy-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .copy-mini {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      border-radius: 8px;
-      background: #f4f7ff;
-      color: #1f355f;
-      border: 1px solid #d8e3ff;
-    }
-
-    #qr img {
-      width: min(220px, 100%);
-      border: 1px solid var(--stroke);
-      border-radius: 10px;
-      background: #fff;
-      padding: 8px;
-    }
-
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .meta-card {
-      border: 1px solid var(--stroke);
-      border-radius: 12px;
-      padding: 10px;
-      display: grid;
-      gap: 5px;
-      background: #fcfdff;
-    }
-
-    .meta-card span {
-      color: var(--muted);
-      font-size: 0.85rem;
-    }
-
-    .meta-card strong {
-      font-size: 1.05rem;
-    }
-
-    .list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .queue-row {
-      border: 1px solid var(--stroke);
-      border-radius: 12px;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      background: #fff;
-    }
-
-    .queue-row small {
-      color: var(--muted);
-    }
-
-    .chip {
-      border-radius: 20px;
-      padding: 4px 10px;
-      font-size: .8rem;
-      font-weight: 700;
-    }
-
-    .chip.waiting {
-      background: #fff3d4;
-      color: var(--warn);
-    }
-
-    .chip.served {
-      background: #dcf9e8;
-      color: var(--success);
-    }
-
-    .row-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .btn-danger {
-      background: #ffe9e9;
-      color: #a61f1f;
-      border: 1px solid #ffc3c3;
-      padding: 6px 10px;
-      font-size: 0.82rem;
-    }
-
-    .btn-danger:hover {
-      background: #ffd6d6;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    @media (max-width: 720px) {
-      body {
-        padding: 12px;
-      }
-
-      .grid-two,
-      .meta-grid,
-      .home-grid,
-      .personal-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="hero" style="text-align:center;">
       <h1>Digital Queue Pro</h1>
-      <p class="app-version">Version <strong id="appVersion">1.00.4 Beta</strong></p>
+      <p class="app-version">Version <strong id="appVersion">1.00.4</strong></p>
     </header>
 
     <section id="globalNotice" class="notice info hidden" role="status"></section>
@@ -404,7 +27,7 @@
       </div>
     </section>
 
-    <section id="createView" class="view panel stack" hidden>
+    <section id="createView" class="view panel stack" hidden style="display:none;">
       <h2>Create Queue</h2>
 
       <div id="createSetupPanel" class="stack">
@@ -464,7 +87,35 @@
       </div>
     </section>
 
-    <section id="joinView" class="view panel stack" hidden>
+    <section id="joinEntryView" class="view panel stack" hidden style="display:none;">
+      <h2>Find a Queue</h2>
+      <p class="join-entry-copy" id="joinEntryCopy">Paste a queue link or code to continue.</p>
+
+      <div id="joinEntryScannerActions" class="toolbar hidden">
+        <button class="btn-primary" id="openScannerBtn" type="button">Open QR Scanner</button>
+        <button class="btn-ghost" id="showManualJoinBtn" type="button">Enter Link or Code</button>
+      </div>
+
+      <div id="joinScannerPanel" class="stack hidden">
+        <video id="joinQrVideo" class="qr-video" autoplay muted playsinline></video>
+        <div id="joinScannerStatus" class="status-block">Point your camera at a queue QR code.</div>
+        <div class="toolbar">
+          <button class="btn-ghost" id="closeScannerBtn" type="button">Close Scanner</button>
+        </div>
+      </div>
+
+      <div id="joinManualPanel" class="stack">
+        <label for="joinQueueLocatorInput">Queue Link or Code</label>
+        <input id="joinQueueLocatorInput" placeholder="https://... ?queue=abc123 or abc123">
+
+        <div class="toolbar">
+          <button class="btn-primary" id="joinEntryContinueBtn" type="button">Continue</button>
+          <button class="btn-ghost" id="joinEntryBackBtn" type="button">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="joinView" class="view panel stack" hidden style="display:none;">
       <h2>Join Queue</h2>
 
       <div class="join-header-card">
@@ -490,7 +141,7 @@
       <div id="joinStatus" class="status-block hidden"></div>
     </section>
 
-    <section id="myQueueView" class="view panel stack" hidden>
+    <section id="myQueueView" class="view panel stack" hidden style="display:none;">
       <div class="personal-title">
         <h2>Your Queue Details</h2>
         <p>Track your live queue status below.</p>
@@ -513,7 +164,7 @@
       </div>
     </section>
 
-    <section id="monitorView" class="view panel stack" hidden>
+    <section id="monitorView" class="view panel stack" hidden style="display:none;">
       <h2 id="queueTitle">Queue</h2>
 
       <div class="toolbar">
@@ -534,907 +185,136 @@
     </section>
   </div>
 
-    <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-    getFirestore,
-    doc,
-    setDoc,
-    getDoc,
-    deleteDoc,
-    updateDoc,
-    onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <script type="module" src="./js/app.js"></script>
+  <script>
+    (function () {
+      const viewIds = ["homeView", "createView", "joinEntryView", "joinView", "myQueueView", "monitorView"];
 
-    const firebaseConfig = {
-    apiKey: "AIzaSyBRa8Sc9MXuWhpYy5fyhYi-CKBac2uLuN8",
-    authDomain: "digital-queue-f4d86.firebaseapp.com",
-    projectId: "digital-queue-f4d86",
-    storageBucket: "digital-queue-f4d86.firebasestorage.app",
-    messagingSenderId: "735217566004",
-    appId: "1:735217566004:web:a508ff070222e0f4aba561",
-    measurementId: "G-3R1N4E6B97"
-    };
+      function showView(id) {
+        viewIds.forEach((viewId) => {
+          const el = document.getElementById(viewId);
+          if (!el) {
+            return;
+          }
+          const isTarget = viewId === id;
+          el.hidden = !isTarget;
+          el.style.display = isTarget ? "block" : "none";
+        });
+      }
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+      const goCreate = document.getElementById("goCreate");
+      const goJoin = document.getElementById("goJoin");
+      const toHomeFromJoin = document.getElementById("toHomeFromJoin");
+      const backFromCreateSetup = document.getElementById("backFromCreateSetup");
 
-    // UI refs
-    const views = {
-    home: document.getElementById("homeView"),
-    create: document.getElementById("createView"),
-    join: document.getElementById("joinView"),
-    myQueue: document.getElementById("myQueueView"),
-    monitor: document.getElementById("monitorView")
-    };
+      if (goCreate) {
+        goCreate.addEventListener("click", () => showView("createView"));
+      }
 
-    const DEFAULT_AVG_MINUTES = 2;
+      if (goJoin) {
+        goJoin.addEventListener("click", () => {
+          if (typeof window.handleHomeJoinClick === "function") {
+            window.handleHomeJoinClick();
+            return;
+          }
+          showView("joinEntryView");
+        });
+      }
 
-    const els = {
-    notice: document.getElementById("globalNotice"),
-    titleInput: document.getElementById("titleInput"),
-    createResult: document.getElementById("createResult"),
-    createSetupPanel: document.getElementById("createSetupPanel"),
-    queueLink: document.getElementById("queueLink"),
-    qr: document.getElementById("qr"),
-    copyLinkBtn: document.getElementById("copyLinkBtn"),
-    copyQrBtn: document.getElementById("copyQrBtn"),
-    endQueueBtn: document.getElementById("endQueueBtn"),
-    createQueueName: document.getElementById("createQueueName"),
-    joinQueueName: document.getElementById("joinQueueName"),
-    joinQueueCode: document.getElementById("joinQueueCode"),
-    nameInput: document.getElementById("nameInput"),
-    joinStatus: document.getElementById("joinStatus"),
-    myQueueName: document.getElementById("myQueueName"),
-    myQueueCode: document.getElementById("myQueueCode"),
-    myQueueUserName: document.getElementById("myQueueUserName"),
-    myQueuePosition: document.getElementById("myQueuePosition"),
-    myQueueEta: document.getElementById("myQueueEta"),
-    myQueueServing: document.getElementById("myQueueServing"),
-    myQueueNote: document.getElementById("myQueueNote"),
-    queueTitle: document.getElementById("queueTitle"),
-    nextBtn: document.getElementById("nextBtn"),
-    metricTotal: document.getElementById("metricTotal"),
-    metricServing: document.getElementById("metricServing"),
-    metricAvg: document.getElementById("metricAvg"),
-    metricPos: document.getElementById("metricPos"),
-    metricTimer: document.getElementById("metricTimer"),
-    queueList: document.getElementById("queueList"),
-    emptyQueue: document.getElementById("emptyQueue"),
-    createMonitorPanel: document.getElementById("createMonitorPanel"),
-    createNextBtn: document.getElementById("createNextBtn"),
-    createRefreshBtn: document.getElementById("createRefreshBtn"),
-    createMetricTotal: document.getElementById("createMetricTotal"),
-    createMetricServing: document.getElementById("createMetricServing"),
-    createMetricAvg: document.getElementById("createMetricAvg"),
-    createMetricPos: document.getElementById("createMetricPos"),
-    createMetricTimer: document.getElementById("createMetricTimer"),
-    createMonitorList: document.getElementById("createMonitorList"),
-    createMonitorEmpty: document.getElementById("createMonitorEmpty")
-    };
+      if (toHomeFromJoin) {
+        toHomeFromJoin.addEventListener("click", () => showView("homeView"));
+      }
 
-    let currentQueueId = null;
-    let currentJoinLink = "";
-    let currentQrUrl = "";
-    let ownerQueueActive = false;
-    let unsubscribe = null;
-    let queueTimerInterval = null;
-    let queueStartedAt = null;
-    const OWNER_QUEUE_KEY = "dq_owner_queue_id";
-    const CLIENT_QUEUE_KEY = "dq_client_queue_id";
-    const CLIENT_NAME_KEY = "dq_client_name";
+      if (backFromCreateSetup) {
+        backFromCreateSetup.addEventListener("click", () => showView("homeView"));
+      }
 
-    // ✅ persistent user ID
-    let userId = localStorage.getItem("dq_user");
-    if (!userId) {
-    userId = Math.random().toString(36).slice(2);
-    localStorage.setItem("dq_user", userId);
-    }
+      if (!new URLSearchParams(window.location.search).get("queue")) {
+        showView("homeView");
+      }
 
-    function randomId(size = 8) {
-    return Math.random().toString(36).slice(2, 2 + size);
-    }
-
-    function setNotice(msg) {
-    els.notice.textContent = msg;
-    els.notice.classList.remove("hidden");
-    }
-
-    function clearNotice() {
-    els.notice.classList.add("hidden");
-    }
-
-    function switchView(target) {
-    Object.values(views).forEach(v => v.style.display = "none");
-    target.style.display = "";
-    }
-
-    function buildJoinLink(id) {
-    return `${window.location.origin}${window.location.pathname}?queue=${id}`;
-    }
-
-    function buildQrUrl(link) {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
-    }
-
-    function getAverageMinutes(queue) {
-    if ((queue.completedServeCount || 0) > 0 && (queue.totalServeMs || 0) > 0) {
-      return queue.totalServeMs / queue.completedServeCount / 60000;
-    }
-
-    if (Number(queue.avgMinutes) > 0) {
-      return Number(queue.avgMinutes);
-    }
-
-    return DEFAULT_AVG_MINUTES;
-    }
-
-    function formatMinutes(value) {
-    const rounded = Math.max(1, Math.round(value));
-    return `${rounded} min`;
-    }
-
-    function normalizeQueue(queue, id = "") {
-    const safeQueue = queue || {};
-    return {
-      id: safeQueue.id || id,
-      title: safeQueue.title || "Queue",
-      members: Array.isArray(safeQueue.members) ? safeQueue.members : [],
-      servingName: safeQueue.servingName || "-",
-      servingMemberId: safeQueue.servingMemberId || null,
-      servingStartedAt: Number(safeQueue.servingStartedAt) || null,
-      totalServeMs: Number(safeQueue.totalServeMs) || 0,
-      completedServeCount: Number(safeQueue.completedServeCount) || 0,
-      avgMinutes: Number(safeQueue.avgMinutes) || 0,
-      createdAt: Number(safeQueue.createdAt) || Date.now()
-    };
-    }
-
-    function formatElapsed(ms) {
-    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
-
-    function updateQueueTimer() {
-    if (!queueStartedAt) {
-      els.createMetricTimer.textContent = "00:00:00";
-      els.metricTimer.textContent = "00:00:00";
-      return;
-    }
-
-    const elapsed = Date.now() - queueStartedAt;
-    const value = formatElapsed(elapsed);
-    els.createMetricTimer.textContent = value;
-    els.metricTimer.textContent = value;
-    }
-
-    function startQueueTimer(createdAt) {
-    queueStartedAt = createdAt;
-    if (queueTimerInterval) {
-      clearInterval(queueTimerInterval);
-      queueTimerInterval = null;
-    }
-    updateQueueTimer();
-    queueTimerInterval = window.setInterval(updateQueueTimer, 1000);
-    }
-
-    function stopQueueTimer() {
-    queueStartedAt = null;
-    if (queueTimerInterval) {
-      clearInterval(queueTimerInterval);
-      queueTimerInterval = null;
-    }
-    updateQueueTimer();
-    }
-
-    function getQueueOrder(queue) {
-    const unserved = (queue.members || []).filter(m => !m.served);
-    const servingIndex = unserved.findIndex(m => m.id === queue.servingMemberId);
-
-    if (servingIndex > -1) {
-      const [servingMember] = unserved.splice(servingIndex, 1);
-      return [servingMember, ...unserved];
-    }
-
-    return unserved;
-    }
-
-    function calculateWaitMinutes(queue, memberId) {
-    const order = getQueueOrder(queue);
-    const index = order.findIndex(m => m.id === memberId);
-
-    if (index < 0) {
-      return null;
-    }
-
-    const avgMinutes = getAverageMinutes(queue);
-    const isServing = queue.servingMemberId === memberId;
-    const waitingAhead = Math.max(0, index - (queue.servingMemberId ? 1 : 0));
-
-    return {
-      position: index + 1,
-      isServing,
-      estimatedMinutes: waitingAhead * avgMinutes
-    };
-    }
-
-    function renderJoinStatus(queue) {
-    const wait = calculateWaitMinutes(queue, userId);
-    const me = (queue.members || []).find(m => m.id === userId);
-
-    if (!wait || !me) {
-      els.joinStatus.classList.add("hidden");
-      return;
-    }
-
-    if (wait.isServing) {
-      els.joinStatus.textContent = `${me.name} is currently being served in ${queue.title}.`;
-      els.joinStatus.classList.remove("hidden");
-      return;
-    }
-
-    const rounded = Math.max(0, Math.round(wait.estimatedMinutes));
-    const minuteLabel = rounded === 1 ? "minute" : "minutes";
-    els.joinStatus.textContent = `${me.name} is #${wait.position} in ${queue.title}. Estimated wait: ${rounded} ${minuteLabel}.`;
-    els.joinStatus.classList.remove("hidden");
-    }
-
-    function renderJoinSummary(queue) {
-    els.joinQueueName.textContent = queue.title || "Queue";
-    els.joinQueueCode.textContent = queue.id || currentQueueId || "-";
-    }
-
-    function renderMyQueueDetails(queue) {
-    const wait = calculateWaitMinutes(queue, userId);
-    const me = (queue.members || []).find(m => m.id === userId);
-
-    els.myQueueName.textContent = queue.title || "Queue";
-    els.myQueueCode.textContent = queue.id || currentQueueId || "-";
-    els.myQueueServing.textContent = queue.servingName || "-";
-
-    if (!me || !wait) {
-      els.myQueueUserName.textContent = localStorage.getItem(CLIENT_NAME_KEY) || "-";
-      els.myQueuePosition.textContent = "-";
-      els.myQueueEta.textContent = "-";
-      els.myQueueNote.textContent = "You are not currently in this queue.";
-      return;
-    }
-
-    els.myQueueUserName.textContent = me.name;
-    els.myQueuePosition.textContent = String(wait.position);
-
-    if (wait.isServing) {
-      els.myQueueEta.textContent = "Now";
-      els.myQueueNote.textContent = `${me.name}, it is your turn now.`;
-      return;
-    }
-
-    const rounded = Math.max(0, Math.round(wait.estimatedMinutes));
-    const minuteLabel = rounded === 1 ? "minute" : "minutes";
-    els.myQueueEta.textContent = `${rounded} ${minuteLabel}`;
-    els.myQueueNote.textContent = `${me.name}, you are #${wait.position} in ${queue.title}.`;
-    }
-
-    function renderQr(link) {
-    currentQrUrl = buildQrUrl(link);
-    els.qr.innerHTML = `<img src="${currentQrUrl}" alt="Queue QR code">`;
-    }
-
-    function legacyCopyText(text) {
-    const area = document.createElement("textarea");
-    area.value = text;
-    area.setAttribute("readonly", "");
-    area.style.position = "fixed";
-    area.style.opacity = "0";
-    document.body.appendChild(area);
-    area.focus();
-    area.select();
-
-    let copied = false;
-    try {
-      copied = document.execCommand("copy");
-    } catch {
-      copied = false;
-    }
-
-    document.body.removeChild(area);
-    return copied;
-    }
-
-    async function copyText(text, successMessage) {
-    if (!text) {
-      setNotice("Nothing to copy yet");
-      return;
-    }
-
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const copied = legacyCopyText(text);
-        if (!copied) {
-          throw new Error("Clipboard unavailable");
+      window.addEventListener("load", function () {
+        if (window.__dqAppReady) {
+          return;
         }
-      }
-      setNotice(successMessage);
-    } catch {
-      const copied = legacyCopyText(text);
-      if (copied) {
-        setNotice(successMessage);
-      } else {
-        setNotice("Copy failed");
-      }
-    }
-    }
 
-    function resetCreateView() {
-    els.createSetupPanel.classList.remove("hidden");
-    els.createResult.classList.add("hidden");
-    els.titleInput.value = "";
-    els.queueLink.textContent = "";
-    els.qr.innerHTML = "";
-    currentJoinLink = "";
-    currentQrUrl = "";
-    ownerQueueActive = false;
-    sessionStorage.removeItem(OWNER_QUEUE_KEY);
-    els.createQueueName.textContent = "-";
-    stopQueueTimer();
-    }
-
-    async function restoreOwnerQueueFromSession() {
-    const storedQueueId = sessionStorage.getItem(OWNER_QUEUE_KEY);
-    if (!storedQueueId) {
-      return false;
-    }
-
-    try {
-      const ref = doc(db, "queues", storedQueueId);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        sessionStorage.removeItem(OWNER_QUEUE_KEY);
-        return false;
-      }
-      const queue = normalizeQueue(snap.data(), storedQueueId);
-
-      currentQueueId = storedQueueId;
-      currentJoinLink = buildJoinLink(storedQueueId);
-      els.createQueueName.textContent = queue.title;
-      els.queueLink.textContent = currentJoinLink;
-      renderQr(currentJoinLink);
-      els.createSetupPanel.classList.add("hidden");
-      els.createResult.classList.remove("hidden");
-      ownerQueueActive = true;
-      switchView(views.create);
-      history.pushState({ ownerQueueGuard: true }, "", window.location.href);
-      renderCreateMonitor(queue);
-      startQueueTimer(queue.createdAt);
-      startRealtime();
-      return true;
-    } catch {
-      return false;
-    }
-    }
-
-    async function endQueueAndReturnHome() {
-    const confirmed = window.confirm("Going back will end this queue for everyone. Continue?");
-    if (!confirmed) {
-      return false;
-    }
-
-    try {
-      if (currentQueueId) {
-        await deleteDoc(doc(db, "queues", currentQueueId));
-      }
-    } catch {
-      setNotice("Error ending queue");
-      return false;
-    }
-
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
-    }
-
-    currentQueueId = null;
-    resetCreateView();
-    clearNotice();
-    switchView(views.home);
-    history.replaceState({}, "", window.location.pathname);
-    stopQueueTimer();
-    return true;
-    }
-
-    // 🔥 CREATE QUEUE
-    async function createQueue() {
-    const title = els.titleInput.value.trim();
-    if (!title) {
-        setNotice("Enter a queue name");
-        return;
-    }
-
-    try {
-        const queue = {
-        id: randomId(),
-        title,
-        createdAt: Date.now(),
-        servingName: "-",
-        servingMemberId: null,
-        servingStartedAt: null,
-        totalServeMs: 0,
-        completedServeCount: 0,
-        avgMinutes: 0,
-        members: []
+        const bindAsyncClick = function (id, loader) {
+          const button = document.getElementById(id);
+          if (!button) {
+            return;
+          }
+          button.addEventListener("click", function () {
+            loader();
+          });
         };
 
-        await setDoc(doc(db, "queues", queue.id), queue);
-
-        currentQueueId = queue.id;
-
-        const link = buildJoinLink(queue.id);
-        currentJoinLink = link;
-        els.createQueueName.textContent = queue.title;
-        els.queueLink.textContent = link;
-        renderQr(link);
-        els.createSetupPanel.classList.add("hidden");
-        els.createResult.classList.remove("hidden");
-        ownerQueueActive = true;
-        sessionStorage.setItem(OWNER_QUEUE_KEY, queue.id);
-        history.pushState({ ownerQueueGuard: true }, "", window.location.href);
-        renderCreateMonitor(queue);
-        startQueueTimer(queue.createdAt);
-        startRealtime();
-
-        clearNotice();
-    } catch {
-        setNotice("Error creating queue");
-    }
-    }
-
-    // 🔥 JOIN QUEUE
-    async function joinQueue() {
-    if (!currentQueueId) {
-      setNotice("Open a valid queue link before joining");
-      return;
-    }
-
-    const name = els.nameInput.value.trim();
-    if (!name) {
-        setNotice("Enter your name");
-        return;
-    }
-
-    try {
-        const ref = doc(db, "queues", currentQueueId);
-        const snap = await getDoc(ref);
-      if (!snap.exists()) {
-      setNotice("Queue not found");
-      return;
-      }
-        const queue = normalizeQueue(snap.data(), currentQueueId);
-
-        // prevent duplicate join
-        const exists = queue.members.find(m => m.id === userId);
-
-        if (!exists) {
-        queue.members.push({
-            id: userId,
-            name,
-            joinedAt: Date.now(),
-            served: false
+        bindAsyncClick("createBtn", function () {
+          import("./js/queueService.js").then(function (mod) { mod.createQueue(); });
         });
 
-        await updateDoc(ref, { members: queue.members });
-        localStorage.setItem(CLIENT_NAME_KEY, name);
-        } else {
-        localStorage.setItem(CLIENT_NAME_KEY, exists.name || name);
-        }
-
-        localStorage.setItem(CLIENT_QUEUE_KEY, currentQueueId);
-        els.nameInput.value = localStorage.getItem(CLIENT_NAME_KEY) || name;
-
-        renderJoinSummary(queue);
-        renderJoinStatus(queue);
-        renderMyQueueDetails(queue);
-        switchView(views.myQueue);
-        setNotice("Joined queue");
-    } catch {
-        setNotice("Error joining queue");
-    }
-    }
-
-      async function exitQueue() {
-      if (!currentQueueId) {
-        return;
-      }
-
-      const confirmed = window.confirm("Are you sure you want to exit this queue?");
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        const ref = doc(db, "queues", currentQueueId);
-        const snap = await getDoc(ref);
-        const queue = snap.data();
-
-        if (!queue) {
-        setNotice("Queue not found");
-        return;
-        }
-
-        const members = queue.members || [];
-        const updatedMembers = members.filter(m => m.id !== userId);
-
-        if (updatedMembers.length === members.length) {
-        setNotice("You are not in this queue");
-        return;
-        }
-
-        await updateDoc(ref, { members: updatedMembers });
-        localStorage.removeItem(CLIENT_QUEUE_KEY);
-        localStorage.removeItem(CLIENT_NAME_KEY);
-        els.joinStatus.classList.add("hidden");
-        setNotice("You exited the queue");
-        window.location.href = window.location.pathname;
-      } catch {
-        setNotice("Error exiting queue");
-      }
-      }
-
-    // 🔥 SERVE NEXT
-    async function serveNext() {
-    try {
-        const ref = doc(db, "queues", currentQueueId);
-        const snap = await getDoc(ref);
-      if (!snap.exists()) {
-      setNotice("Queue not found");
-      return;
-      }
-        const queue = normalizeQueue(snap.data(), currentQueueId);
-
-        const now = Date.now();
-        let completedServeCount = queue.completedServeCount || 0;
-        let totalServeMs = queue.totalServeMs || 0;
-
-        if (queue.servingMemberId) {
-        const servingMember = queue.members.find(m => m.id === queue.servingMemberId && !m.served);
-        if (servingMember) {
-          servingMember.served = true;
-        }
-
-        if (queue.servingStartedAt) {
-          const elapsed = Math.max(0, now - queue.servingStartedAt);
-          if (elapsed > 0) {
-          totalServeMs += elapsed;
-          completedServeCount += 1;
-          }
-        }
-        }
-
-        const next = queue.members.find(m => !m.served);
-        const servingName = next ? next.name : "-";
-        const servingMemberId = next ? next.id : null;
-        const servingStartedAt = next ? now : null;
-        const avgMinutes = completedServeCount > 0 ? totalServeMs / completedServeCount / 60000 : 0;
-
-        await updateDoc(ref, {
-        members: queue.members,
-        servingName,
-        servingMemberId,
-        servingStartedAt,
-        completedServeCount,
-        totalServeMs,
-        avgMinutes
+        bindAsyncClick("joinBtn", function () {
+          import("./js/queueService.js").then(function (mod) { mod.joinQueue(); });
         });
-    } catch {
-        setNotice("Error updating queue");
-    }
-    }
 
-    async function removeClient(memberId) {
-    if (!currentQueueId || !memberId) {
-      return;
-    }
+        bindAsyncClick("nextBtn", function () {
+          import("./js/queueService.js").then(function (mod) { mod.serveNext(); });
+        });
 
-    try {
-      const ref = doc(db, "queues", currentQueueId);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        setNotice("Queue not found");
-        return;
-      }
+        bindAsyncClick("createNextBtn", function () {
+          import("./js/queueService.js").then(function (mod) { mod.serveNext(); });
+        });
 
-      const queue = normalizeQueue(snap.data(), currentQueueId);
-      const target = queue.members.find(m => m.id === memberId);
-      if (!target) {
-        setNotice("Client already removed");
-        return;
-      }
+        bindAsyncClick("exitQueueBtn", function () {
+          import("./js/queueService.js").then(function (mod) { mod.exitQueue(); });
+        });
 
-      const members = queue.members.filter(m => m.id !== memberId);
-      let servingMemberId = queue.servingMemberId;
-      let servingName = queue.servingName;
-      let servingStartedAt = queue.servingStartedAt;
+        bindAsyncClick("myQueueExitBtn", function () {
+          import("./js/queueService.js").then(function (mod) { mod.exitQueue(); });
+        });
 
-      if (queue.servingMemberId === memberId) {
-        const next = members.find(m => !m.served) || null;
-        servingMemberId = next ? next.id : null;
-        servingName = next ? next.name : "-";
-        servingStartedAt = next ? Date.now() : null;
-      }
+        bindAsyncClick("endQueueBtn", function () {
+          import("./js/queueService.js").then(function (mod) { mod.endQueueAndReturnHome(); });
+        });
 
-      await updateDoc(ref, {
-        members,
-        servingMemberId,
-        servingName,
-        servingStartedAt
+        bindAsyncClick("createRefreshBtn", function () {
+          import("./js/realtime.js").then(function (mod) { mod.refreshCurrentQueue(); });
+        });
+
+        bindAsyncClick("refreshBtn", function () {
+          import("./js/realtime.js").then(function (mod) { mod.refreshCurrentQueue(); });
+        });
+
+        const createMonitorList = document.getElementById("createMonitorList");
+        if (createMonitorList) {
+          createMonitorList.addEventListener("click", function (event) {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+              return;
+            }
+            const memberId = target.getAttribute("data-remove-member-id");
+            if (!memberId) {
+              return;
+            }
+            import("./js/queueService.js").then(function (mod) { mod.removeClient(memberId); });
+          });
+        }
+
+        const queueList = document.getElementById("queueList");
+        if (queueList) {
+          queueList.addEventListener("click", function (event) {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+              return;
+            }
+            const memberId = target.getAttribute("data-remove-member-id");
+            if (!memberId) {
+              return;
+            }
+            import("./js/queueService.js").then(function (mod) { mod.removeClient(memberId); });
+          });
+        }
       });
-
-      setNotice(`${target.name} removed from queue`);
-    } catch {
-      setNotice("Error removing client");
-    }
-    }
-
-    // 🔥 REALTIME
-    function startRealtime() {
-    if (unsubscribe) unsubscribe();
-
-    const ref = doc(db, "queues", currentQueueId);
-
-    unsubscribe = onSnapshot(ref, (snap) => {
-      if (!snap.exists()) {
-      if (localStorage.getItem(CLIENT_QUEUE_KEY) === currentQueueId) {
-        localStorage.removeItem(CLIENT_QUEUE_KEY);
-      }
-      stopQueueTimer();
-      setNotice("Queue not found");
-      return;
-      }
-      const queue = normalizeQueue(snap.data(), currentQueueId);
-      renderJoinSummary(queue);
-      const userStillInQueue = (queue.members || []).some(m => m.id === userId);
-      if (!userStillInQueue && localStorage.getItem(CLIENT_QUEUE_KEY) === currentQueueId) {
-      localStorage.removeItem(CLIENT_QUEUE_KEY);
-      }
-      startQueueTimer(queue.createdAt);
-
-      if (views.monitor.style.display !== "none") {
-      renderMonitor(queue);
-      }
-
-      if (views.join.style.display !== "none") {
-      renderJoinStatus(queue);
-      }
-
-      if (views.myQueue.style.display !== "none") {
-      renderMyQueueDetails(queue);
-      }
-
-      if (views.create.style.display !== "none" && !els.createResult.classList.contains("hidden")) {
-      renderCreateMonitor(queue);
-      }
-    });
-    }
-
-    async function refreshCurrentQueue() {
-    if (!currentQueueId) {
-      return;
-    }
-
-    try {
-      const ref = doc(db, "queues", currentQueueId);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        setNotice("Queue not found");
-        return;
-      }
-      const queue = normalizeQueue(snap.data(), currentQueueId);
-      startQueueTimer(queue.createdAt);
-      renderJoinSummary(queue);
-
-      if (views.create.style.display !== "none") {
-        renderCreateMonitor(queue);
-      }
-
-      if (views.monitor.style.display !== "none") {
-        renderMonitor(queue);
-      }
-    } catch {
-      setNotice("Error refreshing queue");
-    }
-    }
-
-    function renderCreateMonitor(queue) {
-    const members = queue.members || [];
-    const waiting = getQueueOrder(queue);
-    const myIndex = waiting.findIndex(m => m.id === userId);
-    const avgMinutes = getAverageMinutes(queue);
-
-    els.createMetricTotal.textContent = waiting.length;
-    els.createMetricServing.textContent = queue.servingName || "-";
-    els.createMetricAvg.textContent = formatMinutes(avgMinutes);
-    els.createMetricPos.textContent = myIndex >= 0 ? myIndex + 1 : "-";
-
-    els.createMonitorList.innerHTML = "";
-    members.forEach((m, i) => {
-      const row = document.createElement("div");
-      row.className = "queue-row";
-      const isServing = queue.servingMemberId === m.id && !m.served;
-      const queuePos = waiting.findIndex(w => w.id === m.id);
-      const estimatedMinutes = queuePos > 0 ? Math.max(1, Math.round((queuePos - 1) * avgMinutes)) : 0;
-      row.innerHTML = `
-      <div>
-        <strong>${i + 1}. ${m.name}</strong>
-        <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
-      </div>
-      <div class="row-actions">
-        <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
-          ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
-        </span>
-        <button class="btn-danger" data-remove-member-id="${m.id}" type="button">Remove</button>
-      </div>
-      `;
-      els.createMonitorList.appendChild(row);
-    });
-
-    els.createMonitorEmpty.classList.toggle("hidden", members.length > 0);
-    }
-
-    function renderMonitor(queue) {
-    const members = queue.members || [];
-    const waiting = getQueueOrder(queue);
-    const avgMinutes = getAverageMinutes(queue);
-
-    const myIndex = waiting.findIndex(m => m.id === userId);
-
-    els.queueTitle.textContent = queue.title;
-    els.metricTotal.textContent = waiting.length;
-    els.metricServing.textContent = queue.servingName || "-";
-    els.metricAvg.textContent = formatMinutes(avgMinutes);
-    els.metricPos.textContent = myIndex >= 0 ? myIndex + 1 : "-";
-
-    els.queueList.innerHTML = "";
-
-    members.forEach((m, i) => {
-        const row = document.createElement("div");
-        row.className = "queue-row";
-        const isServing = queue.servingMemberId === m.id && !m.served;
-        const queuePos = waiting.findIndex(w => w.id === m.id);
-        const estimatedMinutes = queuePos > 0 ? Math.max(1, Math.round((queuePos - 1) * avgMinutes)) : 0;
-        row.innerHTML = `
-        <div>
-          <strong>${i + 1}. ${m.name}</strong>
-          <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
-        </div>
-        <div class="row-actions">
-          <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
-            ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
-          </span>
-          <button class="btn-danger" data-remove-member-id="${m.id}" type="button">Remove</button>
-        </div>
-        `;
-        els.queueList.appendChild(row);
-    });
-
-    els.emptyQueue.classList.toggle("hidden", members.length > 0);
-    }
-
-    // 🔁 INIT
-    async function initFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("queue");
-    const mode = params.get("mode");
-
-    if (!id) {
-        const savedName = localStorage.getItem(CLIENT_NAME_KEY);
-        if (savedName) {
-          els.nameInput.value = savedName;
-        }
-
-        const restored = await restoreOwnerQueueFromSession();
-        if (restored) {
-          clearNotice();
-          return;
-        }
-
-        const savedClientQueueId = localStorage.getItem(CLIENT_QUEUE_KEY);
-        if (savedClientQueueId) {
-          currentQueueId = savedClientQueueId;
-          switchView(views.myQueue);
-          history.replaceState({}, "", `${window.location.pathname}?queue=${savedClientQueueId}`);
-          startRealtime();
-          clearNotice();
-          return;
-        }
-
-        switchView(views.home);
-        return;
-    }
-
-    currentQueueId = id;
-    if (mode !== "monitor") {
-      localStorage.setItem(CLIENT_QUEUE_KEY, id);
-    }
-    const savedName = localStorage.getItem(CLIENT_NAME_KEY);
-    if (savedName) {
-      els.nameInput.value = savedName;
-    }
-
-    if (mode === "monitor") {
-        switchView(views.monitor);
-        startRealtime();
-    } else {
-      const savedName = localStorage.getItem(CLIENT_NAME_KEY);
-      if (savedName) {
-        switchView(views.myQueue);
-      } else {
-        switchView(views.join);
-      }
-      startRealtime();
-    }
-    }
-
-    // 🎯 NAVIGATION
-    document.getElementById("goCreate").onclick = () => switchView(views.create);
-    document.getElementById("goJoin").onclick = () => switchView(views.join);
-    document.getElementById("toHomeFromJoin").onclick = () => switchView(views.home);
-    document.getElementById("myQueueBackBtn").onclick = () => switchView(views.join);
-    document.getElementById("backFromCreateSetup").onclick = () => switchView(views.home);
-    window.addEventListener("popstate", async () => {
-      if (!ownerQueueActive) {
-        return;
-      }
-
-      const ended = await endQueueAndReturnHome();
-      if (!ended) {
-        history.pushState({ ownerQueueGuard: true }, "", window.location.href);
-      }
-    });
-
-    // 🎯 ACTIONS
-    document.getElementById("createBtn").onclick = createQueue;
-    document.getElementById("joinBtn").onclick = joinQueue;
-    document.getElementById("nextBtn").onclick = serveNext;
-    document.getElementById("exitQueueBtn").onclick = exitQueue;
-    document.getElementById("myQueueExitBtn").onclick = exitQueue;
-    document.getElementById("createNextBtn").onclick = serveNext;
-    document.getElementById("createRefreshBtn").onclick = refreshCurrentQueue;
-    els.endQueueBtn.onclick = endQueueAndReturnHome;
-    els.copyLinkBtn.onclick = () => copyText(currentJoinLink, "Queue link copied");
-    els.copyQrBtn.onclick = () => copyText(currentJoinLink, "Queue link copied");
-    els.createMonitorList.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) {
-      return;
-    }
-    const memberId = target.getAttribute("data-remove-member-id");
-    if (!memberId) {
-      return;
-    }
-    removeClient(memberId);
-    });
-    els.queueList.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) {
-      return;
-    }
-    const memberId = target.getAttribute("data-remove-member-id");
-    if (!memberId) {
-      return;
-    }
-    removeClient(memberId);
-    });
-
-    async function bootstrap() {
-    await initFromUrl();
-    }
-
-    bootstrap();
-    </script>
+    })();
+  </script>
 </body>
 </html>
