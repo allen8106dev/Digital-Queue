@@ -100,12 +100,39 @@ function renderQueueDetailsMeta(queue) {
 }
 
 function setNotice(msg) {
-  els.notice.textContent = msg;
-  els.notice.classList.remove("hidden");
+  showToast(msg, "info");
 }
 
 function clearNotice() {
-  els.notice.classList.add("hidden");
+  // Toasts auto-clear now
+}
+
+function showToast(message, type = "info", duration = 4000) {
+  const toastContainer = document.getElementById("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  
+  toastContainer.appendChild(toast);
+  
+  // Auto-remove after duration
+  const timeoutId = setTimeout(() => {
+    toast.classList.add("removing");
+    setTimeout(() => {
+      toast.remove();
+    }, 300); // Match animation duration
+  }, duration);
+  
+  // Allow manual removal
+  toast.addEventListener("click", () => {
+    clearTimeout(timeoutId);
+    toast.classList.add("removing");
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  });
+  
+  return toast;
 }
 
 function switchView(target) {
@@ -314,6 +341,7 @@ export {
   els,
   setNotice,
   clearNotice,
+  showToast,
   switchView,
   setLiveQueueMode,
   renderQueueDetailsMeta,

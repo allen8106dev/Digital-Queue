@@ -7,11 +7,13 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div id="toastContainer" class="toast-container"></div>
+
   <nav class="navbar">
     <div class="navbar-content">
       <div class="brand">
         <h1 class="brand-title">Digital Queue Pro</h1>
-        <p class="app-version">v<span id="appVersion">1.00.6</span></p>
+        <p class="app-version">v<span id="appVersion">1.01.0</span></p>
       </div>
       <div class="navbar-actions">
         <div class="account-hub">
@@ -77,53 +79,50 @@
       </div>
 
       <div id="createResult" class="stack hidden">
-        <h2 id="createQueueTitle">📊 Live Queue Monitor</h2>
-        <div id="liveQueueWorkspace" class="live-queue-workspace">
-          <aside id="queueDetailsDrawer" class="queue-details-drawer" aria-label="Queue details drawer">
-            <button class="queue-details-toggle" id="queueDetailsToggle" type="button" aria-expanded="true" aria-controls="queueDetailsPanel">
-              Queue Details
-              <span class="queue-details-toggle-icon" aria-hidden="true">▴</span>
-            </button>
+        <div class="live-queue-header">
+          <h2 id="createQueueTitle">📊 Live Queue Monitor</h2>
+          <aside id="queueDetailsDrawer" class="queue-details-header" aria-label="Queue details">
+            <button class="queue-details-toggle" id="queueDetailsToggle" type="button" aria-expanded="true" aria-controls="queueDetailsPanel" style="display:none;"></button>
 
-            <div id="queueDetailsPanel" class="queue-details-panel stack">
-              <div class="detail-row">
-                <div class="detail-copy">
-                  <small>Queue Name</small>
-                  <strong id="createQueueName">-</strong>
-                </div>
+            <div id="queueDetailsPanel" class="queue-details-header-panel">
+              <div class="detail-header-info">
+                <small>Queue Name</small>
+                <strong id="createQueueName">-</strong>
               </div>
 
-              <div class="detail-row">
-                <div class="detail-copy">
-                  <small>Time Started</small>
-                  <strong id="createStartTime">-</strong>
-                </div>
+              <div class="detail-header-info">
+                <small>Time Started</small>
+                <strong id="createStartTime">-</strong>
               </div>
-
-              <div class="detail-qr-block">
-                <div class="copy-row">
-                  <label style="margin-bottom:0;">QR Code</label>
-                  <div class="mini-actions">
-                    <button class="copy-mini" id="shareQrBtn" type="button"><span class="share-icon" aria-hidden="true">⤴</span> Share</button>
-                  </div>
-                </div>
-                <div id="qr" style="text-align:center;"></div>
-              </div>
-
-              <div>
-                <div class="copy-row">
-                  <label style="margin-bottom:0;">Queue Link</label>
-                  <div class="mini-actions">
-                    <button class="copy-mini" id="shareLinkBtn" type="button"><span class="share-icon" aria-hidden="true">⤴</span> Share</button>
-                  </div>
-                </div>
-                <div id="queueLink" class="status-block"></div>
-              </div>
-
-              <button class="btn-danger" id="endQueueBtn" type="button">End Queue</button>
             </div>
           </aside>
+        </div>
 
+        <div class="queue-details-full hidden" id="queueDetailsFullPanel">
+          <div class="detail-qr-block">
+            <div class="copy-row">
+              <label style="margin-bottom:0;">QR Code</label>
+              <div class="mini-actions">
+                <button class="copy-mini" id="shareQrBtn" type="button"><span class="share-icon" aria-hidden="true">⤴</span> Share</button>
+              </div>
+            </div>
+            <div id="qr" style="text-align:center;"></div>
+          </div>
+
+          <div>
+            <div class="copy-row">
+              <label style="margin-bottom:0;">Queue Link</label>
+              <div class="mini-actions">
+                <button class="copy-mini" id="shareLinkBtn" type="button"><span class="share-icon" aria-hidden="true">⤴</span> Share</button>
+              </div>
+            </div>
+            <div id="queueLink" class="status-block"></div>
+          </div>
+
+          <button class="btn-danger" id="endQueueBtn" type="button">End Queue</button>
+        </div>
+
+        <div id="liveQueueWorkspace" class="live-queue-workspace">
           <div id="createMonitorPanel" class="section-box stack">
           <h3 class="section-title">📊 Live Queue Monitor</h3>
           <div class="toolbar">
@@ -142,7 +141,7 @@
 
           <div id="createMonitorList" class="list"></div>
           <p id="createMonitorEmpty" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
-        </div>
+          </div>
         </div>
       </div>
     </section>
