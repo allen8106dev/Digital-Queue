@@ -1184,7 +1184,7 @@ body.live-queue-mode #createSetupPanel {
   margin: 0;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 720px) and (orientation: landscape) {
   body {
     padding: 0;
   }
