@@ -21,6 +21,67 @@ import {
   resetCreateView
 } from "./ui.js";
 
+const USER_SESSION_COLLECTION = "user_sessions";
+
+function getUserSessionRef(userId) {
+  if (!userId) {
+    return null;
+  }
+  return doc(db, USER_SESSION_COLLECTION, userId);
+}
+
+async function getUserSession(userId) {
+  const sessionRef = getUserSessionRef(userId);
+  if (!sessionRef) {
+    return null;
+  }
+
+  try {
+    const snap = await getDoc(sessionRef);
+    if (!snap.exists()) {
+      return null;
+    }
+    return snap.data() || null;
+  } catch {
+    return null;
+  }
+}
+
+async function patchUserSession(userId, patch) {
+  const sessionRef = getUserSessionRef(userId);
+  if (!sessionRef) {
+    return;
+  }
+
+  try {
+    await setDoc(sessionRef, patch, { merge: true });
+  } catch {
+    // Session sync should never block queue actions.
+  }
+}
+
+async function setOwnerSessionQueue(userId, queueId) {
+  if (!userId) {
+    return;
+  }
+
+  await patchUserSession(userId, {
+    activeOwnerQueueId: queueId || null,
+    ownerUpdatedAt: Date.now()
+  });
+}
+
+async function setClientSessionQueue(userId, queueId) {
+  if (!userId) {
+    return;
+  }
+
+  await patchUserSession(userId, {
+    activeClientQueueId: queueId || null,
+    clientUpdatedAt: Date.now()
+  });
+}
+
 function parseQueueIdFromLocator(locator) {
   const raw = String(locator || "").trim();
   if (!raw) {
@@ -92,7 +153,7 @@ function renderOwnerQueueWorkspace(queue, queueId) {
   setLiveQueueMode(true);
   state.ownerQueueActive = true;
   switchView(views.create);
-  history.pushState({ ownerQueueGuard: true }, "", window.location.href);
+  history.replaceState({}, "", `${window.location.pathname}?queue=${encodeURIComponent(queueId)}&mode=owner`);
   renderCreateMonitor(queue);
   startQueueTimer(queue.createdAt);
   startRealtime();
@@ -156,7 +217,17 @@ async function restoreOwnerQueueFromSession() {
   }
 
   if (!storedQueueId) {
-    return false;
+    const session = await getUserSession(user.uid);
+    const cloudQueueId = typeof session?.activeOwnerQueueId === "string" ? session.activeOwnerQueueId.trim() : "";
+    if (!cloudQueueId) {
+      return false;
+    }
+
+    const openedFromCloud = await openQueueForOwner(cloudQueueId);
+    if (!openedFromCloud) {
+      await setOwnerSessionQueue(user.uid, null);
+    }
+    return openedFromCloud;
   }
 
   try {
@@ -165,20 +236,52 @@ async function restoreOwnerQueueFromSession() {
     if (!snap.exists()) {
       localStorage.removeItem(OWNER_QUEUE_KEY);
       localStorage.removeItem(OWNER_USER_KEY);
+      await setOwnerSessionQueue(user.uid, null);
       return false;
     }
     const queueData = snap.data() || {};
     const queueOwnerId = typeof queueData.ownerId === "string" ? queueData.ownerId : "";
     if (queueOwnerId && queueOwnerId !== user.uid) {
+      await setOwnerSessionQueue(user.uid, null);
       return false;
     }
 
+    await setOwnerSessionQueue(user.uid, storedQueueId);
     const queue = normalizeQueue(queueData, storedQueueId);
     renderOwnerQueueWorkspace(queue, storedQueueId);
     return true;
   } catch {
     return false;
   }
+}
+
+async function restoreClientQueueFromSession() {
+  const user = getUser();
+  if (!user?.uid) {
+    return false;
+  }
+
+  const localQueueId = getStoredClientQueueId(user.uid);
+  if (localQueueId) {
+    const openedLocal = await openQueueForJoin(localQueueId);
+    if (openedLocal) {
+      await setClientSessionQueue(user.uid, localQueueId);
+      return true;
+    }
+    clearStoredClientQueueId(user.uid);
+  }
+
+  const session = await getUserSession(user.uid);
+  const cloudQueueId = typeof session?.activeClientQueueId === "string" ? session.activeClientQueueId.trim() : "";
+  if (!cloudQueueId) {
+    return false;
+  }
+
+  const openedCloud = await openQueueForJoin(cloudQueueId);
+  if (!openedCloud) {
+    await setClientSessionQueue(user.uid, null);
+  }
+  return openedCloud;
 }
 
 async function openQueueForOwner(queueId) {
@@ -204,6 +307,7 @@ async function openQueueForOwner(queueId) {
 
     localStorage.setItem(OWNER_QUEUE_KEY, queueId);
     localStorage.setItem(OWNER_USER_KEY, user.uid);
+    await setOwnerSessionQueue(user.uid, queueId);
 
     const queue = normalizeQueue(queueData, queueId);
     renderOwnerQueueWorkspace(queue, queueId);
@@ -221,10 +325,14 @@ async function endQueueById(queueId) {
   }
 
   try {
+    const user = getUser();
     await deleteDoc(doc(db, "queues", queueId));
     if (localStorage.getItem(OWNER_QUEUE_KEY) === queueId) {
       localStorage.removeItem(OWNER_QUEUE_KEY);
       localStorage.removeItem(OWNER_USER_KEY);
+    }
+    if (user?.uid) {
+      await setOwnerSessionQueue(user.uid, null);
     }
     return true;
   } catch {
@@ -233,7 +341,7 @@ async function endQueueById(queueId) {
 }
 
 async function endQueueAndReturnHome() {
-  const confirmed = window.confirm("Ending this queue will close this tab. Continue?");
+  const confirmed = window.confirm("Ending this queue will close the live monitor. Continue?");
   if (!confirmed) {
     return false;
   }
@@ -255,21 +363,17 @@ async function endQueueAndReturnHome() {
   state.currentQueueId = null;
   localStorage.removeItem(OWNER_QUEUE_KEY);
   localStorage.removeItem(OWNER_USER_KEY);
+  const user = getUser();
+  if (user?.uid) {
+    await setOwnerSessionQueue(user.uid, null);
+  }
   resetCreateView();
   clearNotice();
   stopQueueTimer();
 
-  // Close owner queue tabs opened via window.open after queue has been ended.
-  window.close();
-
-  // Fallback for tabs that the browser does not allow scripts to close.
-  window.setTimeout(() => {
-    if (!window.closed) {
-      switchView(views.home);
-      history.replaceState({}, "", window.location.pathname);
-      setNotice("Queue ended. Browser blocked automatic tab close.");
-    }
-  }, 120);
+  switchView(views.home);
+  history.replaceState({}, "", window.location.pathname);
+  setNotice("Queue ended.");
 
   return true;
 }
@@ -287,12 +391,8 @@ async function createQueue() {
   const existingUserId = localStorage.getItem(OWNER_USER_KEY);
   
   if (existingQueueId && existingUserId === user.uid) {
-    // User already has a queue, open it instead of creating a new one
-    const ownerUrl = `${window.location.origin}${window.location.pathname}?queue=${encodeURIComponent(existingQueueId)}&mode=owner`;
-    const ownerTab = window.open(ownerUrl, "_blank");
-    if (!ownerTab) {
-      setNotice("Allow pop-ups to open your queue tab.");
-    }
+    // User already has a queue, open it directly in this tab.
+    await openQueueForOwner(existingQueueId);
     return;
   }
 
@@ -328,21 +428,8 @@ async function createQueue() {
   try {
     localStorage.setItem(OWNER_QUEUE_KEY, queue.id);
     localStorage.setItem(OWNER_USER_KEY, user.uid);
-    const ownerUrl = `${window.location.origin}${window.location.pathname}?queue=${encodeURIComponent(queue.id)}&mode=owner`;
-    const ownerTab = window.open(ownerUrl, "_blank");
-    if (!ownerTab) {
-      setNotice("Queue created. Allow pop-ups to open the owner tab.");
-      return;
-    }
-
-    if (typeof window.__dqRegisterOwnerTab === "function") {
-      window.__dqRegisterOwnerTab(queue.id, ownerTab);
-    }
-    
-    // Navigate the original tab back to home
-    if (typeof window.__dqGoHome === "function") {
-      window.__dqGoHome();
-    }
+    await setOwnerSessionQueue(user.uid, queue.id);
+    await openQueueForOwner(queue.id);
   } catch (error) {
     // Queue was created, but a client-side UI/realtime step failed.
     console.error("Queue created but post-create UI update failed", error);
@@ -396,6 +483,7 @@ async function joinQueue() {
     }
 
     setStoredClientQueueId(user.uid, state.currentQueueId);
+    await setClientSessionQueue(user.uid, state.currentQueueId);
     els.nameInput.value = localStorage.getItem(CLIENT_NAME_KEY) || name;
 
     renderJoinSummary(queue);
@@ -444,6 +532,7 @@ async function exitQueue() {
 
     await updateDoc(ref, { members: updatedMembers });
     clearStoredClientQueueId(user.uid);
+    await setClientSessionQueue(user.uid, null);
     localStorage.removeItem(CLIENT_NAME_KEY);
     els.joinStatus.classList.add("hidden");
     setNotice("You exited the queue");
@@ -553,6 +642,7 @@ export {
   openQueueForJoin,
   openQueueForOwner,
   restoreOwnerQueueFromSession,
+  restoreClientQueueFromSession,
   getStoredClientQueueId,
   clearStoredClientQueueId,
   endQueueById,

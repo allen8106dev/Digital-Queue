@@ -33,31 +33,6 @@ const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const settingsDisplayName = document.getElementById("settingsDisplayName");
 const settingsRememberName = document.getElementById("settingsRememberName");
-let ownerTabWatchInterval = null;
-
-function stopOwnerTabWatch() {
-  if (ownerTabWatchInterval) {
-    clearInterval(ownerTabWatchInterval);
-    ownerTabWatchInterval = null;
-  }
-}
-
-window.__dqRegisterOwnerTab = (queueId, ownerTabWindow) => {
-  stopOwnerTabWatch();
-  if (!queueId || !ownerTabWindow) {
-    return;
-  }
-
-  ownerTabWatchInterval = window.setInterval(async () => {
-    if (!ownerTabWindow.closed) {
-      return;
-    }
-
-    stopOwnerTabWatch();
-    const { endQueueById } = await getQueueService();
-    await endQueueById(queueId);
-  }, 1000);
-};
 
 async function getQueueService() {
   if (!queueServiceModulePromise) {
@@ -397,7 +372,7 @@ async function initFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("queue");
   const mode = params.get("mode");
-  const { openQueueForJoin, openQueueForOwner, restoreOwnerQueueFromSession, getStoredClientQueueId, clearStoredClientQueueId } = await getQueueService();
+  const { openQueueForJoin, openQueueForOwner, restoreOwnerQueueFromSession, restoreClientQueueFromSession } = await getQueueService();
   const user = getUser();
 
   if (!id) {
@@ -407,14 +382,10 @@ async function initFromUrl() {
       return;
     }
 
-    const savedClientQueueId = getStoredClientQueueId(user?.uid);
-    if (savedClientQueueId) {
-      const restored = await openQueueForJoin(savedClientQueueId);
-      if (restored) {
-        clearNotice();
-        return;
-      }
-      clearStoredClientQueueId(user?.uid);
+    const clientRestored = await restoreClientQueueFromSession();
+    if (clientRestored) {
+      clearNotice();
+      return;
     }
 
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
@@ -429,7 +400,7 @@ async function initFromUrl() {
   }
 
   state.currentQueueId = id;
-  if (mode !== "monitor" && user?.uid) {
+  if (mode !== "monitor" && mode !== "owner" && user?.uid) {
     localStorage.setItem(getScopedClientQueueKey(user.uid), id);
     localStorage.setItem(CLIENT_QUEUE_KEY, id);
   }
@@ -669,15 +640,7 @@ if (els.closeScannerBtn) {
 }
 
 window.addEventListener("popstate", async () => {
-  if (!state.ownerQueueActive) {
-    return;
-  }
-
-  const { endQueueAndReturnHome } = await getQueueService();
-  const ended = await endQueueAndReturnHome();
-  if (!ended) {
-    history.pushState({ ownerQueueGuard: true }, "", window.location.href);
-  }
+  // Browser navigation is now non-destructive; queue lifecycle is controlled by explicit actions.
 });
 
 window.addEventListener("beforeunload", (event) => {
