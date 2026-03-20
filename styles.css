@@ -49,8 +49,6 @@ body {
 }
 
 .navbar-content {
-  max-width: 820px;
-  margin: 0 auto;
   padding: 8px 16px;
   display: flex;
   justify-content: space-between;
