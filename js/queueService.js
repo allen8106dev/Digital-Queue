@@ -1,5 +1,5 @@
 import { db, doc, setDoc, getDoc, deleteDoc, updateDoc } from "./firebase.js";
-import { state, OWNER_QUEUE_KEY, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY } from "./state.js";
+import { state, OWNER_QUEUE_KEY, OWNER_USER_KEY, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY, getScopedClientQueueKey } from "./state.js";
 import { randomId, buildJoinLink, normalizeQueue } from "./utils.js";
 import { startRealtime } from "./realtime.js";
 import { getUser } from "./auth.js";
@@ -49,6 +49,34 @@ function parseQueueIdFromLocator(locator) {
   return raw;
 }
 
+function setStoredClientQueueId(userId, queueId) {
+  if (!userId || !queueId) {
+    return;
+  }
+  localStorage.setItem(getScopedClientQueueKey(userId), queueId);
+  localStorage.setItem(CLIENT_QUEUE_KEY, queueId);
+}
+
+function getStoredClientQueueId(userId) {
+  if (!userId) {
+    return localStorage.getItem(CLIENT_QUEUE_KEY) || "";
+  }
+
+  const scoped = localStorage.getItem(getScopedClientQueueKey(userId));
+  if (scoped) {
+    return scoped;
+  }
+
+  return localStorage.getItem(CLIENT_QUEUE_KEY) || "";
+}
+
+function clearStoredClientQueueId(userId) {
+  if (userId) {
+    localStorage.removeItem(getScopedClientQueueKey(userId));
+  }
+  localStorage.removeItem(CLIENT_QUEUE_KEY);
+}
+
 async function openQueueForJoin(locatorOrQueueId) {
   const queueId = parseQueueIdFromLocator(locatorOrQueueId);
   if (!queueId) {
@@ -66,13 +94,15 @@ async function openQueueForJoin(locatorOrQueueId) {
 
     const queue = normalizeQueue(snap.data(), queueId);
     state.currentQueueId = queueId;
-    localStorage.setItem(CLIENT_QUEUE_KEY, queueId);
+    const user = getUser();
+    if (user?.uid) {
+      setStoredClientQueueId(user.uid, queueId);
+    }
 
     renderJoinSummary(queue);
     renderJoinStatus(queue);
     renderMyQueueDetails(queue);
 
-    const user = getUser();
     const existingMember = (queue.members || []).find(m => m.id === user?.uid);
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
     if (existingMember && existingMember.name) {
@@ -96,7 +126,14 @@ async function openQueueForJoin(locatorOrQueueId) {
 }
 
 async function restoreOwnerQueueFromSession() {
-  const storedQueueId = sessionStorage.getItem(OWNER_QUEUE_KEY);
+  const user = getUser();
+  const storedQueueId = localStorage.getItem(OWNER_QUEUE_KEY);
+  const storedOwnerUserId = localStorage.getItem(OWNER_USER_KEY);
+
+  if (!user || !user.uid || (storedOwnerUserId && storedOwnerUserId !== user.uid)) {
+    return false;
+  }
+
   if (!storedQueueId) {
     return false;
   }
@@ -105,10 +142,17 @@ async function restoreOwnerQueueFromSession() {
     const ref = doc(db, "queues", storedQueueId);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
-      sessionStorage.removeItem(OWNER_QUEUE_KEY);
+      localStorage.removeItem(OWNER_QUEUE_KEY);
+      localStorage.removeItem(OWNER_USER_KEY);
       return false;
     }
-    const queue = normalizeQueue(snap.data(), storedQueueId);
+    const queueData = snap.data() || {};
+    const queueOwnerId = typeof queueData.ownerId === "string" ? queueData.ownerId : "";
+    if (queueOwnerId && queueOwnerId !== user.uid) {
+      return false;
+    }
+
+    const queue = normalizeQueue(queueData, storedQueueId);
 
     state.currentQueueId = storedQueueId;
     state.currentJoinLink = buildJoinLink(storedQueueId);
@@ -152,6 +196,8 @@ async function endQueueAndReturnHome() {
   }
 
   state.currentQueueId = null;
+  localStorage.removeItem(OWNER_QUEUE_KEY);
+  localStorage.removeItem(OWNER_USER_KEY);
   resetCreateView();
   clearNotice();
   switchView(views.home);
@@ -177,6 +223,7 @@ async function createQueue() {
   const queue = {
     id: randomId(),
     title,
+    ownerId: user.uid,
     createdAt: Date.now(),
     servingName: "-",
     servingMemberId: null,
@@ -209,7 +256,8 @@ async function createQueue() {
     els.createResult.classList.remove("hidden");
     setLiveQueueMode(true);
     state.ownerQueueActive = true;
-    sessionStorage.setItem(OWNER_QUEUE_KEY, queue.id);
+    localStorage.setItem(OWNER_QUEUE_KEY, queue.id);
+    localStorage.setItem(OWNER_USER_KEY, user.uid);
     history.pushState({ ownerQueueGuard: true }, "", window.location.href);
     renderCreateMonitor(queue);
     startQueueTimer(queue.createdAt);
@@ -268,7 +316,7 @@ async function joinQueue() {
       localStorage.setItem(CLIENT_NAME_KEY, exists.name || name);
     }
 
-    localStorage.setItem(CLIENT_QUEUE_KEY, state.currentQueueId);
+    setStoredClientQueueId(user.uid, state.currentQueueId);
     els.nameInput.value = localStorage.getItem(CLIENT_NAME_KEY) || name;
 
     renderJoinSummary(queue);
@@ -316,7 +364,7 @@ async function exitQueue() {
     }
 
     await updateDoc(ref, { members: updatedMembers });
-    localStorage.removeItem(CLIENT_QUEUE_KEY);
+    clearStoredClientQueueId(user.uid);
     localStorage.removeItem(CLIENT_NAME_KEY);
     els.joinStatus.classList.add("hidden");
     setNotice("You exited the queue");
@@ -425,6 +473,8 @@ export {
   parseQueueIdFromLocator,
   openQueueForJoin,
   restoreOwnerQueueFromSession,
+  getStoredClientQueueId,
+  clearStoredClientQueueId,
   endQueueAndReturnHome,
   createQueue,
   joinQueue,

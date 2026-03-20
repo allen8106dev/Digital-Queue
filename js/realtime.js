@@ -1,5 +1,5 @@
 import { db, doc, getDoc, onSnapshot } from "./firebase.js";
-import { state, CLIENT_QUEUE_KEY } from "./state.js";
+import { state, CLIENT_QUEUE_KEY, getScopedClientQueueKey } from "./state.js";
 import { normalizeQueue } from "./utils.js";
 import {
   views,
@@ -26,6 +26,12 @@ function startRealtime() {
       if (localStorage.getItem(CLIENT_QUEUE_KEY) === state.currentQueueId) {
         localStorage.removeItem(CLIENT_QUEUE_KEY);
       }
+      if (state.userId) {
+        const scopedKey = getScopedClientQueueKey(state.userId);
+        if (localStorage.getItem(scopedKey) === state.currentQueueId) {
+          localStorage.removeItem(scopedKey);
+        }
+      }
       stopQueueTimer();
       setNotice("Queue not found");
       return;
@@ -35,6 +41,12 @@ function startRealtime() {
     const userStillInQueue = (queue.members || []).some(m => m.id === state.userId);
     if (!userStillInQueue && localStorage.getItem(CLIENT_QUEUE_KEY) === state.currentQueueId) {
       localStorage.removeItem(CLIENT_QUEUE_KEY);
+    }
+    if (!userStillInQueue && state.userId) {
+      const scopedKey = getScopedClientQueueKey(state.userId);
+      if (localStorage.getItem(scopedKey) === state.currentQueueId) {
+        localStorage.removeItem(scopedKey);
+      }
     }
     startQueueTimer(queue.createdAt);
 

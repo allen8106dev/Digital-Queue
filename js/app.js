@@ -1,4 +1,4 @@
-import { state, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY } from "./state.js";
+import { state, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY, getScopedClientQueueKey } from "./state.js";
 import {
   views,
   els,
@@ -347,7 +347,8 @@ async function initFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("queue");
   const mode = params.get("mode");
-  const { openQueueForJoin, restoreOwnerQueueFromSession } = await getQueueService();
+  const { openQueueForJoin, restoreOwnerQueueFromSession, getStoredClientQueueId, clearStoredClientQueueId } = await getQueueService();
+  const user = getUser();
 
   if (!id) {
     const ownerRestored = await restoreOwnerQueueFromSession();
@@ -356,18 +357,17 @@ async function initFromUrl() {
       return;
     }
 
-    const savedClientQueueId = localStorage.getItem(CLIENT_QUEUE_KEY);
+    const savedClientQueueId = getStoredClientQueueId(user?.uid);
     if (savedClientQueueId) {
       const restored = await openQueueForJoin(savedClientQueueId);
       if (restored) {
         clearNotice();
         return;
       }
-      localStorage.removeItem(CLIENT_QUEUE_KEY);
+      clearStoredClientQueueId(user?.uid);
     }
 
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
-    const user = getUser();
     if (savedName) {
       els.nameInput.value = savedName;
     } else if (user && user.displayName) {
@@ -379,11 +379,11 @@ async function initFromUrl() {
   }
 
   state.currentQueueId = id;
-  if (mode !== "monitor") {
+  if (mode !== "monitor" && user?.uid) {
+    localStorage.setItem(getScopedClientQueueKey(user.uid), id);
     localStorage.setItem(CLIENT_QUEUE_KEY, id);
   }
   const savedName = localStorage.getItem(CLIENT_NAME_KEY);
-  const user = getUser();
   if (savedName) {
     els.nameInput.value = savedName;
   } else if (user && user.displayName) {
@@ -704,6 +704,8 @@ async function bootstrap() {
     initAuth((user) => {
       if (user) {
         state.userId = user.uid;
+      } else {
+        state.userId = null;
       }
       updateAuthButton();
       resolve();

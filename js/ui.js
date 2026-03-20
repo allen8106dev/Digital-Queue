@@ -1,4 +1,4 @@
-import { state, OWNER_QUEUE_KEY, CLIENT_NAME_KEY } from "./state.js";
+import { state, OWNER_QUEUE_KEY, OWNER_USER_KEY, CLIENT_NAME_KEY } from "./state.js";
 import {
   buildQrUrl,
   calculateWaitMinutes,
@@ -298,7 +298,8 @@ function resetCreateView() {
   state.currentJoinLink = "";
   state.currentQrUrl = "";
   state.ownerQueueActive = false;
-  sessionStorage.removeItem(OWNER_QUEUE_KEY);
+  localStorage.removeItem(OWNER_QUEUE_KEY);
+  localStorage.removeItem(OWNER_USER_KEY);
   els.createQueueName.textContent = "-";
   els.createStartTime.textContent = "-";
   setLiveQueueMode(false);
