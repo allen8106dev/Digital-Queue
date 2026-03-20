@@ -340,7 +340,6 @@ async function startJoinScanner() {
     }
 
     if (els.joinScannerPanel) {
-      els.joinScannerPanel.classList.add("scanner-compact");
       els.joinScannerPanel.classList.remove("hidden");
     }
     if (els.joinEntryScannerActions) {
@@ -650,6 +649,11 @@ if (els.openScannerBtn) {
   els.openScannerBtn.onclick = async () => {
     await startJoinScanner();
   };
+}
+
+const joinEntryActionBackBtn = document.getElementById("joinEntryActionBackBtn");
+if (joinEntryActionBackBtn) {
+  joinEntryActionBackBtn.onclick = goHome;
 }
 
 if (els.closeScannerBtn) {
