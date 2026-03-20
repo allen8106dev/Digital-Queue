@@ -71,15 +71,19 @@ async function openQueueForJoin(locatorOrQueueId) {
     renderMyQueueDetails(queue);
 
     const user = getUser();
+    const existingMember = (queue.members || []).find(m => m.id === user?.uid);
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
-    if (savedName) {
+    if (existingMember && existingMember.name) {
+      els.nameInput.value = existingMember.name;
+      localStorage.setItem(CLIENT_NAME_KEY, existingMember.name);
+    } else if (savedName) {
       els.nameInput.value = savedName;
     } else if (user && user.displayName) {
       els.nameInput.value = user.displayName;
     }
 
     history.replaceState({}, "", `${window.location.pathname}?queue=${encodeURIComponent(queueId)}`);
-    switchView(views.join);
+    switchView(existingMember ? views.myQueue : views.join);
     startRealtime();
     clearNotice();
     return true;

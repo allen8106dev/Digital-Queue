@@ -18,10 +18,12 @@ let realtimeModulePromise = null;
 let joinScannerStream = null;
 let joinScannerFrameRequest = null;
 let joinScannerActive = false;
+const GOOGLE_ACCOUNT_LOGO_URL = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg";
 
 const accountMenuBtn = document.getElementById("accountMenuBtn");
 const accountMenu = document.getElementById("accountMenu");
 const accountMenuState = document.getElementById("accountMenuState");
+const accountAvatar = document.getElementById("accountAvatar");
 const menuSignIn = document.getElementById("menuSignIn");
 const menuSettings = document.getElementById("menuSettings");
 const menuLogout = document.getElementById("menuLogout");
@@ -257,8 +259,25 @@ async function initFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("queue");
   const mode = params.get("mode");
+  const { openQueueForJoin, restoreOwnerQueueFromSession } = await getQueueService();
 
   if (!id) {
+    const ownerRestored = await restoreOwnerQueueFromSession();
+    if (ownerRestored) {
+      clearNotice();
+      return;
+    }
+
+    const savedClientQueueId = localStorage.getItem(CLIENT_QUEUE_KEY);
+    if (savedClientQueueId) {
+      const restored = await openQueueForJoin(savedClientQueueId);
+      if (restored) {
+        clearNotice();
+        return;
+      }
+      localStorage.removeItem(CLIENT_QUEUE_KEY);
+    }
+
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
     const user = getUser();
     if (savedName) {
@@ -288,9 +307,7 @@ async function initFromUrl() {
     const { startRealtime } = await getRealtime();
     startRealtime();
   } else {
-    switchView(views.join);
-    const { startRealtime } = await getRealtime();
-    startRealtime();
+    await openQueueForJoin(id);
   }
 }
 
@@ -304,6 +321,12 @@ window.handleHomeJoinClick = showJoinEntryView;
 
 function updateAuthButton() {
   const user = getUser();
+
+  if (accountAvatar) {
+    const userPhoto = typeof user?.photoURL === "string" ? user.photoURL.trim() : "";
+    accountAvatar.src = userPhoto || GOOGLE_ACCOUNT_LOGO_URL;
+    accountAvatar.alt = user ? `${user.displayName || "Google"} profile photo` : "Google account";
+  }
 
   if (accountMenuState) {
     accountMenuState.textContent = user ? user.displayName || "Signed in" : "Sign in";
@@ -338,6 +361,14 @@ if (accountMenuBtn) {
   accountMenuBtn.onclick = () => {
     toggleAccountMenu();
   };
+}
+
+if (accountAvatar) {
+  accountAvatar.addEventListener("error", () => {
+    if (accountAvatar.src !== GOOGLE_ACCOUNT_LOGO_URL) {
+      accountAvatar.src = GOOGLE_ACCOUNT_LOGO_URL;
+    }
+  });
 }
 
 if (menuSignIn) {
