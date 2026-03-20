@@ -169,8 +169,7 @@ async function shareQueueLink() {
 
   const sharePayload = {
     title: "Join my queue",
-    text: shareBody,
-    url: state.currentJoinLink
+    text: shareBody
   };
 
   if (navigator.share) {
@@ -229,8 +228,7 @@ async function shareQueueQr() {
 
     await navigator.share({
       title: "Join my queue",
-      text: shareText,
-      url: state.currentJoinLink
+      text: shareText
     });
     setNotice("Queue details shared");
   } catch {
