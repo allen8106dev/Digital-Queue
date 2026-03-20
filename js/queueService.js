@@ -9,7 +9,9 @@ import {
   setNotice,
   clearNotice,
   switchView,
+  setLiveQueueMode,
   renderQr,
+  renderQueueDetailsMeta,
   renderJoinSummary,
   renderJoinStatus,
   renderMyQueueDetails,
@@ -113,8 +115,10 @@ async function restoreOwnerQueueFromSession() {
     els.createQueueName.textContent = queue.title;
     els.queueLink.textContent = state.currentJoinLink;
     renderQr(state.currentJoinLink);
+    renderQueueDetailsMeta(queue);
     els.createSetupPanel.classList.add("hidden");
     els.createResult.classList.remove("hidden");
+    setLiveQueueMode(true);
     state.ownerQueueActive = true;
     switchView(views.create);
     history.pushState({ ownerQueueGuard: true }, "", window.location.href);
@@ -200,8 +204,10 @@ async function createQueue() {
     els.createQueueName.textContent = queue.title;
     els.queueLink.textContent = link;
     renderQr(link);
+    renderQueueDetailsMeta(queue);
     els.createSetupPanel.classList.add("hidden");
     els.createResult.classList.remove("hidden");
+    setLiveQueueMode(true);
     state.ownerQueueActive = true;
     sessionStorage.setItem(OWNER_QUEUE_KEY, queue.id);
     history.pushState({ ownerQueueGuard: true }, "", window.location.href);

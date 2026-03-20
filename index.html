@@ -31,13 +31,13 @@
             <button class="account-item danger hidden" id="menuLogout" type="button" role="menuitem">Log out</button>
           </div>
         </div>
-        <p class="app-version">v<span id="appVersion">1.00.5</span></p>
+        <p class="app-version">v<span id="appVersion">1.00.6-beta.1</span></p>
       </div>
     </div>
   </nav>
 
-  <div class="app-shell">
-    <header class="hero" style="text-align:center;">
+  <div class="app-shell" id="appShell">
+    <header class="hero" id="heroSection" style="text-align:center;">
       <h2 class="hero-title">Queue Management Made Simple</h2>
       <p class="hero-subtitle">Organize, monitor, and manage queues in real-time</p>
     </header>
@@ -63,7 +63,6 @@
     </section>
 
     <section id="createView" class="view panel stack" hidden style="display:none;">
-      <h2>Create Queue</h2>
 
       <div id="createSetupPanel" class="stack">
         <div>
@@ -78,28 +77,57 @@
       </div>
 
       <div id="createResult" class="stack hidden">
-        <div style="margin-bottom:8px;">
-          <small style="color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:0.05em;">Queue Name</small>
-          <h3 style="margin:4px 0 0;">
-            <strong id="createQueueName">-</strong>
-          </h3>
-        </div>
+        <div id="liveQueueWorkspace" class="live-queue-workspace">
+          <aside id="queueDetailsDrawer" class="queue-details-drawer" aria-label="Queue details drawer">
+            <button class="queue-details-toggle" id="queueDetailsToggle" type="button" aria-expanded="true" aria-controls="queueDetailsPanel">
+              Queue Details
+              <span class="queue-details-toggle-icon" aria-hidden="true">▴</span>
+            </button>
 
-        <div id="createSharePanel" class="section-box stack">
-          <h3 class="section-title">📱 Share Queue</h3>
-          <div class="copy-row">
-            <label style="margin-bottom:0;">QR Code</label>
-            <button class="copy-mini" id="copyQrBtn" type="button">Copy</button>
-          </div>
-          <div id="qr" style="text-align:center;"></div>
-          <div class="copy-row">
-            <label style="margin-bottom:0;">Queue Link</label>
-            <button class="copy-mini" id="copyLinkBtn" type="button">Copy</button>
-          </div>
-          <div id="queueLink" class="status-block"></div>
-        </div>
+            <div id="queueDetailsPanel" class="queue-details-panel stack">
+              <div class="detail-row">
+                <div class="detail-copy">
+                  <small>Queue Name</small>
+                  <strong id="createQueueName">-</strong>
+                </div>
+                <button class="copy-mini" id="copyQueueNameBtn" type="button">Copy</button>
+              </div>
 
-        <div id="createMonitorPanel" class="section-box stack">
+              <div class="detail-row">
+                <div class="detail-copy">
+                  <small>Time Started</small>
+                  <strong id="createStartTime">-</strong>
+                </div>
+                <button class="copy-mini" id="copyStartTimeBtn" type="button">Copy</button>
+              </div>
+
+              <div class="detail-qr-block">
+                <div class="copy-row">
+                  <label style="margin-bottom:0;">QR Code</label>
+                  <div class="mini-actions">
+                    <button class="copy-mini" id="shareQrBtn" type="button">Share</button>
+                    <button class="copy-mini" id="copyQrBtn" type="button">Copy</button>
+                  </div>
+                </div>
+                <div id="qr" style="text-align:center;"></div>
+              </div>
+
+              <div>
+                <div class="copy-row">
+                  <label style="margin-bottom:0;">Queue Link</label>
+                  <div class="mini-actions">
+                    <button class="copy-mini" id="shareLinkBtn" type="button">Share</button>
+                    <button class="copy-mini" id="copyLinkBtn" type="button">Copy</button>
+                  </div>
+                </div>
+                <div id="queueLink" class="status-block"></div>
+              </div>
+
+              <button class="btn-danger" id="endQueueBtn" type="button">End Queue</button>
+            </div>
+          </aside>
+
+          <div id="createMonitorPanel" class="section-box stack">
           <h3 class="section-title">📊 Live Queue Monitor</h3>
           <div class="toolbar">
             <button class="btn-primary" id="createNextBtn" type="button">Serve Next</button>
@@ -117,9 +145,6 @@
           <div id="createMonitorList" class="list"></div>
           <p id="createMonitorEmpty" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
         </div>
-
-        <div class="toolbar" style="justify-content:flex-end;">
-          <button class="btn-danger" id="endQueueBtn" type="button">End Queue</button>
         </div>
       </div>
     </section>

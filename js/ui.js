@@ -17,6 +17,9 @@ const views = {
   monitor: document.getElementById("monitorView")
 };
 
+const appShell = document.getElementById("appShell");
+const heroSection = document.getElementById("heroSection");
+
 const els = {
   notice: document.getElementById("globalNotice"),
   titleInput: document.getElementById("titleInput"),
@@ -26,6 +29,13 @@ const els = {
   qr: document.getElementById("qr"),
   copyLinkBtn: document.getElementById("copyLinkBtn"),
   copyQrBtn: document.getElementById("copyQrBtn"),
+  shareLinkBtn: document.getElementById("shareLinkBtn"),
+  shareQrBtn: document.getElementById("shareQrBtn"),
+  copyQueueNameBtn: document.getElementById("copyQueueNameBtn"),
+  copyStartTimeBtn: document.getElementById("copyStartTimeBtn"),
+  queueDetailsDrawer: document.getElementById("queueDetailsDrawer"),
+  queueDetailsToggle: document.getElementById("queueDetailsToggle"),
+  createStartTime: document.getElementById("createStartTime"),
   endQueueBtn: document.getElementById("endQueueBtn"),
   createQueueName: document.getElementById("createQueueName"),
   joinQueueName: document.getElementById("joinQueueName"),
@@ -71,6 +81,24 @@ const els = {
   createMonitorList: document.getElementById("createMonitorList"),
   createMonitorEmpty: document.getElementById("createMonitorEmpty")
 };
+
+function setLiveQueueMode(enabled) {
+  document.body.classList.toggle("live-queue-mode", enabled);
+  appShell?.classList.toggle("live-queue-shell", enabled);
+  heroSection?.classList.toggle("hidden", enabled);
+  views.create.classList.toggle("live-monitor-view", enabled);
+}
+
+function renderQueueDetailsMeta(queue) {
+  els.createQueueName.textContent = queue.title || "Queue";
+  const createdAt = Number(queue.createdAt);
+  if (!Number.isFinite(createdAt) || createdAt <= 0) {
+    els.createStartTime.textContent = "-";
+    return;
+  }
+  const startedAt = new Date(createdAt);
+  els.createStartTime.textContent = startedAt.toLocaleString();
+}
 
 function setNotice(msg) {
   els.notice.textContent = msg;
@@ -190,6 +218,8 @@ function renderCreateMonitor(queue) {
   const myIndex = waiting.findIndex(m => m.id === state.userId);
   const avgMinutes = getAverageMinutes(queue);
 
+  renderQueueDetailsMeta(queue);
+
   els.createMetricTotal.textContent = waiting.length;
   els.createMetricServing.textContent = queue.servingName || "-";
   els.createMetricAvg.textContent = formatMinutes(avgMinutes);
@@ -262,6 +292,10 @@ function renderMonitor(queue) {
 function resetCreateView() {
   els.createSetupPanel.classList.remove("hidden");
   els.createResult.classList.add("hidden");
+  els.queueDetailsDrawer?.classList.remove("minimized");
+  if (els.queueDetailsToggle) {
+    els.queueDetailsToggle.setAttribute("aria-expanded", "true");
+  }
   els.titleInput.value = "";
   els.queueLink.textContent = "";
   els.qr.innerHTML = "";
@@ -270,6 +304,8 @@ function resetCreateView() {
   state.ownerQueueActive = false;
   sessionStorage.removeItem(OWNER_QUEUE_KEY);
   els.createQueueName.textContent = "-";
+  els.createStartTime.textContent = "-";
+  setLiveQueueMode(false);
   stopQueueTimer();
 }
 
@@ -279,6 +315,8 @@ export {
   setNotice,
   clearNotice,
   switchView,
+  setLiveQueueMode,
+  renderQueueDetailsMeta,
   renderJoinStatus,
   renderJoinSummary,
   renderMyQueueDetails,

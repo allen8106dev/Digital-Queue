@@ -128,6 +128,31 @@ function applySavedNamePreference() {
   }
 }
 
+async function shareQueueLink() {
+  if (!state.currentJoinLink) {
+    setNotice("Queue link is not ready yet");
+    return;
+  }
+
+  const sharePayload = {
+    title: "Join my queue",
+    text: "Use this link to join the queue",
+    url: state.currentJoinLink
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(sharePayload);
+      setNotice("Queue link shared");
+      return;
+    } catch {
+      // fall back to clipboard copy
+    }
+  }
+
+  copyText(state.currentJoinLink, "Queue link copied", setNotice);
+}
+
 function isMobileDevice() {
   const ua = navigator.userAgent || "";
   return /Android|iPhone|iPad|iPod|Mobi/i.test(ua) || window.matchMedia("(pointer:coarse)").matches;
@@ -586,6 +611,32 @@ els.endQueueBtn.onclick = async () => {
 };
 els.copyLinkBtn.onclick = () => copyText(state.currentJoinLink, "Queue link copied", setNotice);
 els.copyQrBtn.onclick = () => copyText(state.currentJoinLink, "Queue link copied", setNotice);
+if (els.shareLinkBtn) {
+  els.shareLinkBtn.onclick = async () => {
+    await shareQueueLink();
+  };
+}
+if (els.shareQrBtn) {
+  els.shareQrBtn.onclick = async () => {
+    await shareQueueLink();
+  };
+}
+if (els.copyQueueNameBtn) {
+  els.copyQueueNameBtn.onclick = () => {
+    copyText(els.createQueueName?.textContent || "", "Queue name copied", setNotice);
+  };
+}
+if (els.copyStartTimeBtn) {
+  els.copyStartTimeBtn.onclick = () => {
+    copyText(els.createStartTime?.textContent || "", "Queue start time copied", setNotice);
+  };
+}
+if (els.queueDetailsToggle && els.queueDetailsDrawer) {
+  els.queueDetailsToggle.onclick = () => {
+    const isMinimized = els.queueDetailsDrawer.classList.toggle("minimized");
+    els.queueDetailsToggle.setAttribute("aria-expanded", String(!isMinimized));
+  };
+}
 els.createMonitorList.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) {
