@@ -701,6 +701,12 @@ if (els.monitorEndQueueBtn) {
     endQueueAndReturnHome();
   };
 }
+if (els.createEndQueueBtn) {
+  els.createEndQueueBtn.onclick = async () => {
+    const { endQueueAndReturnHome } = await getQueueService();
+    endQueueAndReturnHome();
+  };
+}
 // Expose goHome globally for queueService to call
 window.__dqGoHome = goHome;
 if (els.shareLinkBtn) {

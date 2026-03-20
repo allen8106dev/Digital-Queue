@@ -81,6 +81,9 @@ function renderOwnerQueueWorkspace(queue, queueId) {
   state.currentQueueId = queueId;
   state.currentJoinLink = buildJoinLink(queueId);
   els.createQueueName.textContent = queue.title;
+  if (els.createQueueTitle) {
+    els.createQueueTitle.textContent = queue.title;
+  }
   els.queueLink.textContent = state.currentJoinLink;
   renderQr(state.currentJoinLink);
   renderQueueDetailsMeta(queue);
