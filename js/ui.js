@@ -31,9 +31,11 @@ const els = {
   shareQrBtn: document.getElementById("shareQrBtn"),
   queueDetailsDrawer: document.getElementById("queueDetailsDrawer"),
   queueDetailsToggle: document.getElementById("queueDetailsToggle"),
+  createStartDate: document.getElementById("createStartDate"),
   createStartTime: document.getElementById("createStartTime"),
   endQueueBtn: document.getElementById("endQueueBtn"),
   createQueueName: document.getElementById("createQueueName"),
+  createQueueCode: document.getElementById("createQueueCode"),
   joinQueueName: document.getElementById("joinQueueName"),
   joinQueueCode: document.getElementById("joinQueueCode"),
   joinEntryCopy: document.getElementById("joinEntryCopy"),
@@ -90,13 +92,16 @@ function setLiveQueueMode(enabled) {
 
 function renderQueueDetailsMeta(queue) {
   els.createQueueName.textContent = queue.title || "Queue";
+  els.createQueueCode.textContent = queue.id || state.currentQueueId || "-";
   const createdAt = Number(queue.createdAt);
   if (!Number.isFinite(createdAt) || createdAt <= 0) {
+    els.createStartDate.textContent = "-";
     els.createStartTime.textContent = "-";
     return;
   }
   const startedAt = new Date(createdAt);
-  els.createStartTime.textContent = startedAt.toLocaleString();
+  els.createStartDate.textContent = startedAt.toLocaleDateString();
+  els.createStartTime.textContent = startedAt.toLocaleTimeString();
 }
 
 function setNotice(msg) {
@@ -334,6 +339,8 @@ function resetCreateView() {
   localStorage.removeItem(OWNER_QUEUE_KEY);
   localStorage.removeItem(OWNER_USER_KEY);
   els.createQueueName.textContent = "-";
+  els.createQueueCode.textContent = "-";
+  els.createStartDate.textContent = "-";
   els.createStartTime.textContent = "-";
   setLiveQueueMode(false);
   stopQueueTimer();

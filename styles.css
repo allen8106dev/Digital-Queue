@@ -789,10 +789,10 @@ button {
   border: 1px solid var(--stroke);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  padding: 16px;
+  padding: 14px;
   z-index: 100;
   display: grid;
-  gap: 16px;
+  gap: 8px;
   animation: slideDown 0.3s ease-out;
 }
 
@@ -811,16 +811,21 @@ button {
   }
 }
 
+.detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .detail-row {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  justify-content: space-between;
+  min-width: 0;
 }
 
 .detail-copy {
   display: grid;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
 
 .detail-copy small {
@@ -839,7 +844,7 @@ button {
 .detail-qr-block {
   border: 1px solid var(--stroke);
   border-radius: 10px;
-  padding: 10px;
+  padding: 8px;
   background: #f8fafc;
 }
 
@@ -1001,7 +1006,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0;
+  padding: 0 0 4px;
 }
 
 .copy-mini {
@@ -1196,6 +1201,13 @@ body.live-queue-mode #createMonitorPanel .section-title {
 
 body.live-queue-mode #createMonitorList {
   align-content: flex-start;
+}
+
+@media (max-width: 640px) {
+  .detail-meta-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
 
 body.live-queue-mode #createResult {

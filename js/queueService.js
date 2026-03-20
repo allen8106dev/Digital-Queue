@@ -175,8 +175,17 @@ async function openQueueForJoin(locatorOrQueueId) {
     }
 
     const queue = normalizeQueue(snap.data(), queueId);
-    state.currentQueueId = queueId;
     const user = getUser();
+
+    if (user?.uid && queue.ownerId === user.uid) {
+      const openedOwner = await openQueueForOwner(queueId);
+      if (!openedOwner) {
+        setNotice("Only the queue creator can manage this queue");
+      }
+      return openedOwner;
+    }
+
+    state.currentQueueId = queueId;
     if (user?.uid) {
       setStoredClientQueueId(user.uid, queueId);
     }

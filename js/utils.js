@@ -34,6 +34,7 @@ function normalizeQueue(queue, id = "") {
   return {
     id: safeQueue.id || id,
     title: safeQueue.title || "Queue",
+    ownerId: typeof safeQueue.ownerId === "string" ? safeQueue.ownerId : "",
     members: Array.isArray(safeQueue.members) ? safeQueue.members : [],
     servingName: safeQueue.servingName || "-",
     servingMemberId: safeQueue.servingMemberId || null,

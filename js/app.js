@@ -134,7 +134,9 @@ async function shareQueueLink() {
   }
 
   const queueName = (els.createQueueName?.textContent || "Queue").trim() || "Queue";
-  const queueDateTime = (els.createStartTime?.textContent || "-").trim() || "-";
+  const queueDate = (els.createStartDate?.textContent || "-").trim() || "-";
+  const queueTime = (els.createStartTime?.textContent || "-").trim() || "-";
+  const queueDateTime = `${queueDate} ${queueTime}`.trim();
   const shareBody = [
     `Queue Name: ${queueName}`,
     `Date & Time: ${queueDateTime}`,
@@ -168,7 +170,9 @@ async function shareQueueQr() {
   }
 
   const queueName = (els.createQueueName?.textContent || "Queue").trim() || "Queue";
-  const queueDateTime = (els.createStartTime?.textContent || "-").trim() || "-";
+  const queueDate = (els.createStartDate?.textContent || "-").trim() || "-";
+  const queueTime = (els.createStartTime?.textContent || "-").trim() || "-";
+  const queueDateTime = `${queueDate} ${queueTime}`.trim();
   const shareText = [
     `Queue Name: ${queueName}`,
     `Date & Time: ${queueDateTime}`,
@@ -641,17 +645,6 @@ if (els.closeScannerBtn) {
 
 window.addEventListener("popstate", async () => {
   // Browser navigation is now non-destructive; queue lifecycle is controlled by explicit actions.
-});
-
-window.addEventListener("beforeunload", (event) => {
-  const params = new URLSearchParams(window.location.search);
-  const isOwnerTab = params.get("mode") === "owner";
-  if (!isOwnerTab || !state.ownerQueueActive) {
-    return;
-  }
-
-  event.preventDefault();
-  event.returnValue = "Closing this tab will end the queue.";
 });
 
 // 🎯 ACTIONS
