@@ -268,6 +268,20 @@ async function createQueue() {
     return;
   }
 
+  // Check if user already has an active owner queue
+  const existingQueueId = localStorage.getItem(OWNER_QUEUE_KEY);
+  const existingUserId = localStorage.getItem(OWNER_USER_KEY);
+  
+  if (existingQueueId && existingUserId === user.uid) {
+    // User already has a queue, open it instead of creating a new one
+    const ownerUrl = `${window.location.origin}${window.location.pathname}?queue=${encodeURIComponent(existingQueueId)}&mode=owner`;
+    const ownerTab = window.open(ownerUrl, "_blank");
+    if (!ownerTab) {
+      setNotice("Allow pop-ups to open your queue tab.");
+    }
+    return;
+  }
+
   const title = els.titleInput.value.trim();
   if (!title) {
     setNotice("Enter a queue name");
