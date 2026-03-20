@@ -233,7 +233,7 @@ async function endQueueById(queueId) {
 }
 
 async function endQueueAndReturnHome() {
-  const confirmed = window.confirm("Going back will end this queue for everyone. Continue?");
+  const confirmed = window.confirm("Ending this queue will close this tab. Continue?");
   if (!confirmed) {
     return false;
   }
@@ -257,9 +257,20 @@ async function endQueueAndReturnHome() {
   localStorage.removeItem(OWNER_USER_KEY);
   resetCreateView();
   clearNotice();
-  switchView(views.home);
-  history.replaceState({}, "", window.location.pathname);
   stopQueueTimer();
+
+  // Close owner queue tabs opened via window.open after queue has been ended.
+  window.close();
+
+  // Fallback for tabs that the browser does not allow scripts to close.
+  window.setTimeout(() => {
+    if (!window.closed) {
+      switchView(views.home);
+      history.replaceState({}, "", window.location.pathname);
+      setNotice("Queue ended. Browser blocked automatic tab close.");
+    }
+  }, 120);
+
   return true;
 }
 

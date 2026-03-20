@@ -726,39 +726,6 @@ button {
   }
 }
 
-.queue-details-toggle {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f8fafc;
-  border: 0;
-  border-bottom: 1px solid var(--stroke);
-  border-radius: 0;
-  padding: 11px 14px;
-  color: var(--text);
-  font-weight: 700;
-  display: none;
-}
-
-.queue-details-toggle-icon {
-  transition: transform 0.2s ease;
-}
-
-.queue-details-drawer.minimized .queue-details-toggle-icon {
-  transform: rotate(180deg);
-}
-
-.queue-details-panel {
-  padding: 12px;
-  gap: 12px;
-  display: grid;
-}
-
-.queue-details-drawer.minimized .queue-details-panel {
-  display: none;
-}
-
 .detail-row {
   display: flex;
   gap: 10px;
