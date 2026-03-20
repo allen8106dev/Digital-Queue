@@ -874,6 +874,35 @@ button {
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
+#joinScannerPanel.scanner-compact {
+  gap: 10px;
+}
+
+#joinScannerPanel.scanner-compact .qr-video {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#joinScannerPanel.scanner-compact #joinScannerStatus {
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 10px 12px;
+}
+
+#joinScannerPanel.scanner-compact .toolbar {
+  margin: 0;
+}
+
+#joinScannerPanel.scanner-compact .toolbar button {
+  width: 100%;
+  text-align: center;
+}
+
 .join-header-row {
   display: grid;
   gap: 6px;

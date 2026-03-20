@@ -301,7 +301,11 @@ function stopJoinScanner() {
     els.joinQrVideo.srcObject = null;
   }
   if (els.joinScannerPanel) {
+    els.joinScannerPanel.classList.remove("scanner-compact");
     els.joinScannerPanel.classList.add("hidden");
+  }
+  if (isMobileDevice() && els.joinEntryScannerActions) {
+    els.joinEntryScannerActions.classList.remove("hidden");
   }
 }
 
@@ -336,7 +340,11 @@ async function startJoinScanner() {
     }
 
     if (els.joinScannerPanel) {
+      els.joinScannerPanel.classList.add("scanner-compact");
       els.joinScannerPanel.classList.remove("hidden");
+    }
+    if (els.joinEntryScannerActions) {
+      els.joinEntryScannerActions.classList.add("hidden");
     }
     if (els.joinManualPanel) {
       els.joinManualPanel.classList.add("hidden");
@@ -644,9 +652,7 @@ if (els.openScannerBtn) {
 if (els.closeScannerBtn) {
   els.closeScannerBtn.onclick = () => {
     stopJoinScanner();
-    if (els.joinManualPanel) {
-      els.joinManualPanel.classList.remove("hidden");
-    }
+    setJoinEntryMode();
   };
 }
 
