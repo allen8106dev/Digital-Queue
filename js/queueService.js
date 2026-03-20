@@ -166,22 +166,29 @@ async function createQueue() {
     return;
   }
 
+  const queue = {
+    id: randomId(),
+    title,
+    createdAt: Date.now(),
+    servingName: "-",
+    servingMemberId: null,
+    servingStartedAt: null,
+    totalServeMs: 0,
+    completedServeCount: 0,
+    avgMinutes: 0,
+    members: []
+  };
+
   try {
-    const queue = {
-      id: randomId(),
-      title,
-      createdAt: Date.now(),
-      servingName: "-",
-      servingMemberId: null,
-      servingStartedAt: null,
-      totalServeMs: 0,
-      completedServeCount: 0,
-      avgMinutes: 0,
-      members: []
-    };
-
     await setDoc(doc(db, "queues", queue.id), queue);
+  } catch (error) {
+    const details = error && typeof error.message === "string" ? `: ${error.message}` : "";
+    setNotice(`Error creating queue${details}`);
+    console.error("Create queue failed", error);
+    return;
+  }
 
+  try {
     state.currentQueueId = queue.id;
 
     const link = buildJoinLink(queue.id);
@@ -199,8 +206,10 @@ async function createQueue() {
     startRealtime();
 
     clearNotice();
-  } catch {
-    setNotice("Error creating queue");
+  } catch (error) {
+    // Queue was created, but a client-side UI/realtime step failed.
+    console.error("Queue created but post-create UI update failed", error);
+    setNotice("Queue created, but the page failed to update. Refresh to continue.");
   }
 }
 
