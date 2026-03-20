@@ -318,9 +318,12 @@ function renderMonitor(queue) {
 function resetCreateView() {
   els.createSetupPanel.classList.remove("hidden");
   els.createResult.classList.add("hidden");
-  els.queueDetailsDrawer?.classList.remove("minimized");
+  const queueDetailsPanel = document.getElementById("queueDetailsPanel");
+  if (queueDetailsPanel) {
+    queueDetailsPanel.classList.add("hidden");
+  }
   if (els.queueDetailsToggle) {
-    els.queueDetailsToggle.setAttribute("aria-expanded", "true");
+    els.queueDetailsToggle.setAttribute("aria-expanded", "false");
   }
   els.titleInput.value = "";
   els.queueLink.textContent = "";

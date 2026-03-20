@@ -721,8 +721,11 @@ if (els.shareQrBtn) {
 }
 if (els.queueDetailsToggle && els.queueDetailsDrawer) {
   els.queueDetailsToggle.onclick = () => {
-    const isMinimized = els.queueDetailsDrawer.classList.toggle("minimized");
-    els.queueDetailsToggle.setAttribute("aria-expanded", String(!isMinimized));
+    const panel = document.getElementById("queueDetailsPanel");
+    if (panel) {
+      const isHidden = panel.classList.toggle("hidden");
+      els.queueDetailsToggle.setAttribute("aria-expanded", String(!isHidden));
+    }
   };
 }
 els.createMonitorList.addEventListener("click", (event) => {

@@ -641,13 +641,14 @@ button {
 .live-queue-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
   margin-bottom: 20px;
   padding: 16px;
   background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
   border: 1px solid var(--primary-light);
   border-radius: 14px;
+  position: relative;
 }
 
 .live-queue-header h2 {
@@ -657,49 +658,72 @@ button {
   font-size: 1.5rem;
 }
 
-.queue-details-header {
+.queue-details-dropdown {
+  position: relative;
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
-.queue-details-header-panel {
+.queue-details-toggle {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: var(--transition);
 }
 
-.detail-header-info {
-  text-align: right;
-  display: grid;
-  gap: 4px;
-  min-width: 180px;
+.queue-details-toggle:hover {
+  background: var(--primary-light);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
+  transform: translateY(-1px);
 }
 
-.detail-header-info small {
-  color: var(--muted);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 700;
+.queue-details-toggle-icon {
+  font-size: 0.85rem;
+  transition: transform 0.2s ease;
 }
 
-.detail-header-info strong {
-  font-size: 0.98rem;
-  word-break: break-word;
-  color: var(--text);
+.queue-details-toggle[aria-expanded="true"] .queue-details-toggle-icon {
+  transform: rotate(180deg);
 }
 
-.queue-details-full {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
-  border: 1px solid var(--primary-light);
-  border-radius: 14px;
+.queue-details-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 320px;
+  max-width: 380px;
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
   padding: 16px;
-  margin-bottom: 20px;
+  z-index: 100;
   display: grid;
   gap: 16px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.queue-details-panel.hidden {
+  display: none;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .queue-details-toggle {
@@ -1153,20 +1177,24 @@ body.live-queue-mode #createSetupPanel {
   .live-queue-header {
     flex-direction: column;
     gap: 12px;
+    align-items: flex-start;
   }
 
   .live-queue-header h2 {
     font-size: 1.25rem;
   }
 
-  .queue-details-header,
-  .queue-details-header-panel {
+  .queue-details-dropdown {
     width: 100%;
-    justify-content: flex-start;
   }
 
-  .detail-header-info {
-    text-align: left;
+  .queue-details-panel {
+    position: fixed;
+    top: auto;
+    right: 10px;
+    left: 10px;
+    bottom: auto;
+    max-width: none;
     min-width: auto;
   }
 
