@@ -11,11 +11,26 @@ import { login, logout, getUser, initAuth } from "./auth.js";
 
 window.__dqAppReady = false;
 
+const SETTINGS_REMEMBER_NAME_KEY = "dqRememberName";
+
 let queueServiceModulePromise = null;
 let realtimeModulePromise = null;
 let joinScannerStream = null;
 let joinScannerFrameRequest = null;
 let joinScannerActive = false;
+
+const accountMenuBtn = document.getElementById("accountMenuBtn");
+const accountMenu = document.getElementById("accountMenu");
+const accountMenuState = document.getElementById("accountMenuState");
+const menuSignIn = document.getElementById("menuSignIn");
+const menuSettings = document.getElementById("menuSettings");
+const menuLogout = document.getElementById("menuLogout");
+const homeAuthMessage = document.getElementById("homeAuthMessage");
+const settingsModal = document.getElementById("settingsModal");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+const settingsDisplayName = document.getElementById("settingsDisplayName");
+const settingsRememberName = document.getElementById("settingsRememberName");
 
 async function getQueueService() {
   if (!queueServiceModulePromise) {
@@ -36,6 +51,61 @@ function goHome() {
   history.replaceState({}, "", window.location.pathname);
   clearNotice();
   switchView(views.home);
+}
+
+function closeAccountMenu() {
+  if (!accountMenu || !accountMenuBtn) {
+    return;
+  }
+  accountMenu.classList.add("hidden");
+  accountMenuBtn.classList.remove("active");
+  accountMenuBtn.setAttribute("aria-expanded", "false");
+}
+
+function openAccountMenu() {
+  if (!accountMenu || !accountMenuBtn) {
+    return;
+  }
+  accountMenu.classList.remove("hidden");
+  accountMenuBtn.classList.add("active");
+  accountMenuBtn.setAttribute("aria-expanded", "true");
+}
+
+function toggleAccountMenu() {
+  if (!accountMenu || accountMenu.classList.contains("hidden")) {
+    openAccountMenu();
+    return;
+  }
+  closeAccountMenu();
+}
+
+function openSettingsModal() {
+  if (!settingsModal) {
+    return;
+  }
+  const storedName = localStorage.getItem(CLIENT_NAME_KEY) || "";
+  const shouldRemember = localStorage.getItem(SETTINGS_REMEMBER_NAME_KEY) !== "0";
+  if (settingsDisplayName) {
+    settingsDisplayName.value = storedName;
+  }
+  if (settingsRememberName) {
+    settingsRememberName.checked = shouldRemember;
+  }
+  settingsModal.classList.remove("hidden");
+}
+
+function closeSettingsModal() {
+  if (!settingsModal) {
+    return;
+  }
+  settingsModal.classList.add("hidden");
+}
+
+function applySavedNamePreference() {
+  const savedName = localStorage.getItem(CLIENT_NAME_KEY);
+  if (savedName && els.nameInput) {
+    els.nameInput.value = savedName;
+  }
 }
 
 function isMobileDevice() {
@@ -232,39 +302,27 @@ document.getElementById("myQueueBackBtn").onclick = () => switchView(views.join)
 document.getElementById("backFromCreateSetup").onclick = goHome;
 window.handleHomeJoinClick = showJoinEntryView;
 
-// 🔐 AUTH
-const authBtn = document.getElementById("authBtn");
-if (authBtn) {
-  authBtn.onclick = async () => {
-    const user = getUser();
-    if (user) {
-      await logout();
-      updateAuthButton();
-    } else {
-      try {
-        await login();
-        updateAuthButton();
-      } catch (error) {
-        setNotice("Google Sign-in failed. Please try again.");
-      }
-    }
-  };
-}
-
 function updateAuthButton() {
   const user = getUser();
-  if (authBtn) {
-    if (user) {
-      authBtn.textContent = `Logged in as ${user.displayName || "User"}`;
-      authBtn.classList.remove("btn-primary");
-      authBtn.classList.add("btn-ghost");
-    } else {
-      authBtn.textContent = "Sign in with Google";
-      authBtn.classList.add("btn-primary");
-      authBtn.classList.remove("btn-ghost");
-    }
+
+  if (accountMenuState) {
+    accountMenuState.textContent = user ? user.displayName || "Signed in" : "Sign in";
   }
-  
+
+  if (menuSignIn) {
+    menuSignIn.classList.toggle("hidden", Boolean(user));
+  }
+
+  if (menuLogout) {
+    menuLogout.classList.toggle("hidden", !user);
+  }
+
+  if (homeAuthMessage) {
+    homeAuthMessage.textContent = user
+      ? `Welcome back, ${user.displayName || "User"}. Manage account options from the top-right menu.`
+      : "Sign in from the top-right account menu to continue.";
+  }
+
   const goCreate = document.getElementById("goCreate");
   const goJoin = document.getElementById("goJoin");
   if (goCreate && goJoin) {
@@ -275,6 +333,101 @@ function updateAuthButton() {
     goJoin.style.opacity = disabled ? "0.5" : "1";
   }
 }
+
+if (accountMenuBtn) {
+  accountMenuBtn.onclick = () => {
+    toggleAccountMenu();
+  };
+}
+
+if (menuSignIn) {
+  menuSignIn.onclick = async () => {
+    closeAccountMenu();
+    try {
+      await login();
+      updateAuthButton();
+    } catch {
+      setNotice("Google Sign-in failed. Please try again.");
+    }
+  };
+}
+
+if (menuLogout) {
+  menuLogout.onclick = async () => {
+    closeAccountMenu();
+    try {
+      await logout();
+      updateAuthButton();
+    } catch {
+      setNotice("Log out failed. Please try again.");
+    }
+  };
+}
+
+if (menuSettings) {
+  menuSettings.onclick = () => {
+    closeAccountMenu();
+    openSettingsModal();
+  };
+}
+
+if (closeSettingsBtn) {
+  closeSettingsBtn.onclick = () => {
+    closeSettingsModal();
+  };
+}
+
+if (saveSettingsBtn) {
+  saveSettingsBtn.onclick = () => {
+    const rememberName = Boolean(settingsRememberName?.checked);
+    const enteredName = String(settingsDisplayName?.value || "").trim();
+
+    localStorage.setItem(SETTINGS_REMEMBER_NAME_KEY, rememberName ? "1" : "0");
+    if (rememberName && enteredName) {
+      localStorage.setItem(CLIENT_NAME_KEY, enteredName);
+      if (els.nameInput) {
+        els.nameInput.value = enteredName;
+      }
+    }
+    if (!rememberName) {
+      localStorage.removeItem(CLIENT_NAME_KEY);
+      if (els.nameInput) {
+        els.nameInput.value = "";
+      }
+    }
+
+    closeSettingsModal();
+    setNotice("Settings updated.");
+  };
+}
+
+if (settingsModal) {
+  settingsModal.addEventListener("click", (event) => {
+    if (event.target === settingsModal) {
+      closeSettingsModal();
+    }
+  });
+}
+
+document.addEventListener("click", (event) => {
+  if (!accountMenu || !accountMenuBtn) {
+    return;
+  }
+  const target = event.target;
+  if (!(target instanceof Node)) {
+    return;
+  }
+  if (!accountMenu.contains(target) && !accountMenuBtn.contains(target)) {
+    closeAccountMenu();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeAccountMenu();
+    closeSettingsModal();
+  }
+});
 
 if (els.joinEntryBackBtn) {
   els.joinEntryBackBtn.onclick = goHome;
@@ -399,6 +552,8 @@ els.queueList.addEventListener("click", (event) => {
 });
 
 async function bootstrap() {
+  applySavedNamePreference();
+
   await new Promise((resolve) => {
     initAuth((user) => {
       if (user) {

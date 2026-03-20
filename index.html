@@ -13,6 +13,22 @@
         <h1 class="brand-title">Digital Queue Pro</h1>
       </div>
       <div class="navbar-actions">
+        <div class="account-hub">
+          <button class="account-trigger" id="accountMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
+            <div class="top-right-logo" aria-hidden="true">DQ</div>
+            <div class="account-copy">
+              <span class="account-label">Account</span>
+              <strong id="accountMenuState">Sign in</strong>
+            </div>
+            <span class="account-caret" aria-hidden="true">▾</span>
+          </button>
+
+          <div class="account-menu hidden" id="accountMenu" role="menu" aria-labelledby="accountMenuBtn">
+            <button class="account-item" id="menuSignIn" type="button" role="menuitem">Sign in with Google</button>
+            <button class="account-item" id="menuSettings" type="button" role="menuitem">Settings</button>
+            <button class="account-item danger hidden" id="menuLogout" type="button" role="menuitem">Log out</button>
+          </div>
+        </div>
         <p class="app-version">v<span id="appVersion">1.00.5</span></p>
       </div>
     </div>
@@ -28,7 +44,7 @@
 
     <section id="homeView" class="view panel active" style="text-align:center;">
       <div id="authPanel" class="stack" style="margin-bottom:12px;">
-        <button class="btn-primary" id="authBtn" type="button">Sign in with Google</button>
+        <p class="home-auth-message" id="homeAuthMessage">Sign in from the top-right account menu to continue.</p>
       </div>
 
       <div class="home-grid" style="max-width:500px; margin:auto;">
@@ -205,6 +221,31 @@
       <div id="queueList" class="list"></div>
       <p id="emptyQueue" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
     </section>
+  </div>
+
+  <div class="modal-backdrop hidden" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <h3 id="settingsTitle">Settings</h3>
+        <button class="btn-ghost" id="closeSettingsBtn" type="button" aria-label="Close settings">Close</button>
+      </div>
+
+      <div class="settings-body stack">
+        <div>
+          <label for="settingsDisplayName">Default Display Name</label>
+          <input id="settingsDisplayName" placeholder="How your name appears in queue">
+        </div>
+
+        <label class="settings-check">
+          <input id="settingsRememberName" type="checkbox" checked>
+          <span>Remember my name on this device</span>
+        </label>
+      </div>
+
+      <div class="toolbar" style="justify-content:flex-end;">
+        <button class="btn-primary" id="saveSettingsBtn" type="button">Save Settings</button>
+      </div>
+    </div>
   </div>
 
   <footer class="footer">
