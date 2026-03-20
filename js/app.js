@@ -637,6 +637,9 @@ if (els.joinQueueLocatorInput) {
 if (els.showManualJoinBtn) {
   els.showManualJoinBtn.onclick = () => {
     stopJoinScanner();
+    if (els.joinEntryScannerActions) {
+      els.joinEntryScannerActions.classList.add("hidden");
+    }
     if (els.joinManualPanel) {
       els.joinManualPanel.classList.remove("hidden");
     }
