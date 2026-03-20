@@ -90,26 +90,6 @@
               </button>
 
               <div id="queueDetailsPanel" class="queue-details-panel hidden">
-                <div class="detail-qr-block">
-                  <div class="copy-row">
-                    <label style="margin-bottom:0;">QR Code</label>
-                    <div class="mini-actions">
-                      <button class="copy-mini" id="shareQrBtn" type="button"><span class="share-icon" aria-hidden="true">⤴</span> Share</button>
-                    </div>
-                  </div>
-                  <div id="qr" style="text-align:center;"></div>
-                </div>
-
-                <div>
-                  <div class="copy-row">
-                    <label style="margin-bottom:0;">Queue Link</label>
-                    <div class="mini-actions">
-                      <button class="copy-mini" id="shareLinkBtn" type="button"><span class="share-icon" aria-hidden="true">⤴</span> Share</button>
-                    </div>
-                  </div>
-                  <div id="queueLink" class="status-block"></div>
-                </div>
-
                 <div class="detail-row">
                   <div class="detail-copy">
                     <small>Queue Name</small>
@@ -119,12 +99,21 @@
 
                 <div class="detail-row">
                   <div class="detail-copy">
-                    <small>Time Started</small>
+                    <small>Date, Time</small>
                     <strong id="createStartTime">-</strong>
                   </div>
                 </div>
 
-                <button class="btn-danger" id="endQueueBtn" type="button" style="width: 100%;">End Queue</button>
+                <div class="detail-qr-block">
+                  <div class="copy-row">
+                    <label style="margin-bottom:0;">QR Code</label>
+                    <div class="mini-actions">
+                      <button class="copy-mini icon-only" id="shareQrBtn" type="button" aria-label="Share queue details"><span class="share-icon" aria-hidden="true">⤴</span></button>
+                    </div>
+                  </div>
+                  <div id="qr" style="text-align:center;"></div>
+                  <div id="queueLink" class="status-block queue-link-below-qr"></div>
+                </div>
               </div>
             </aside>
           </div>

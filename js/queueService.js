@@ -84,7 +84,7 @@ function renderOwnerQueueWorkspace(queue, queueId) {
   if (els.createQueueTitle) {
     els.createQueueTitle.textContent = queue.title;
   }
-  els.queueLink.textContent = state.currentJoinLink;
+  els.queueLink.innerHTML = `<a href="${state.currentJoinLink}" target="_blank" rel="noopener noreferrer">${state.currentJoinLink}</a>`;
   renderQr(state.currentJoinLink);
   renderQueueDetailsMeta(queue);
   els.createSetupPanel.classList.add("hidden");

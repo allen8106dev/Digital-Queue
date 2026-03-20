@@ -758,6 +758,18 @@ button {
   background: #f8fafc;
 }
 
+.queue-link-below-qr {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.queue-link-below-qr a {
+  color: var(--primary);
+  text-decoration: underline;
+  font-weight: 600;
+  word-break: break-all;
+}
+
 .mini-actions {
   display: inline-flex;
   gap: 6px;
@@ -891,6 +903,20 @@ button {
 
 .copy-mini:hover {
   background: var(--primary-light);
+}
+
+.copy-mini.icon-only {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-mini.icon-only .share-icon {
+  margin-right: 0;
+  font-size: 1rem;
 }
 
 .share-icon {

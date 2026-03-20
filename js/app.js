@@ -158,9 +158,18 @@ async function shareQueueLink() {
     return;
   }
 
+  const queueName = (els.createQueueName?.textContent || "Queue").trim() || "Queue";
+  const queueDateTime = (els.createStartTime?.textContent || "-").trim() || "-";
+  const shareBody = [
+    `Queue Name: ${queueName}`,
+    `Date & Time: ${queueDateTime}`,
+    "Scan QR code or click the link to join",
+    state.currentJoinLink
+  ].join("\n");
+
   const sharePayload = {
     title: "Join my queue",
-    text: "Use this link to join the queue",
+    text: shareBody,
     url: state.currentJoinLink
   };
 
@@ -185,7 +194,13 @@ async function shareQueueQr() {
   }
 
   const queueName = (els.createQueueName?.textContent || "Queue").trim() || "Queue";
-  const shareText = `Scan to join ${queueName}`;
+  const queueDateTime = (els.createStartTime?.textContent || "-").trim() || "-";
+  const shareText = [
+    `Queue Name: ${queueName}`,
+    `Date & Time: ${queueDateTime}`,
+    "Scan QR code or click the link to join",
+    state.currentJoinLink
+  ].join("\n");
 
   if (!navigator.share) {
     setNotice("Sharing is not supported on this device");
@@ -214,7 +229,7 @@ async function shareQueueQr() {
 
     await navigator.share({
       title: "Join my queue",
-      text: `${shareText}\n${state.currentJoinLink}`,
+      text: shareText,
       url: state.currentJoinLink
     });
     setNotice("Queue details shared");
@@ -691,10 +706,12 @@ document.getElementById("refreshBtn").onclick = async () => {
   const { refreshCurrentQueue } = await getRealtime();
   refreshCurrentQueue();
 };
-els.endQueueBtn.onclick = async () => {
-  const { endQueueAndReturnHome } = await getQueueService();
-  endQueueAndReturnHome();
-};
+if (els.endQueueBtn) {
+  els.endQueueBtn.onclick = async () => {
+    const { endQueueAndReturnHome } = await getQueueService();
+    endQueueAndReturnHome();
+  };
+}
 if (els.monitorEndQueueBtn) {
   els.monitorEndQueueBtn.onclick = async () => {
     const { endQueueAndReturnHome } = await getQueueService();

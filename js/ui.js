@@ -326,7 +326,7 @@ function resetCreateView() {
     els.queueDetailsToggle.setAttribute("aria-expanded", "false");
   }
   els.titleInput.value = "";
-  els.queueLink.textContent = "";
+  els.queueLink.innerHTML = "";
   els.qr.innerHTML = "";
   state.currentJoinLink = "";
   state.currentQrUrl = "";
