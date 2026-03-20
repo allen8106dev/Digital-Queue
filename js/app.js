@@ -289,6 +289,9 @@ async function continueJoinEntry(locatorValue) {
 
 function stopJoinScanner() {
   joinScannerActive = false;
+  if (views.joinEntry) {
+    views.joinEntry.classList.remove("scanner-active");
+  }
   if (joinScannerFrameRequest) {
     cancelAnimationFrame(joinScannerFrameRequest);
     joinScannerFrameRequest = null;
@@ -314,18 +317,11 @@ async function startJoinScanner() {
     return;
   }
 
-  if (!("BarcodeDetector" in window)) {
-    setNotice("QR scanner is not supported on this device. Use queue code entry.");
-    if (els.joinManualPanel) {
-      els.joinManualPanel.classList.remove("hidden");
-    }
-    return;
-  }
-
   stopJoinScanner();
 
   try {
-    const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+    const supportsBarcodeDetector = "BarcodeDetector" in window;
+    const detector = supportsBarcodeDetector ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: "environment" } },
       audio: false
@@ -342,6 +338,9 @@ async function startJoinScanner() {
     if (els.joinScannerPanel) {
       els.joinScannerPanel.classList.remove("hidden");
     }
+    if (views.joinEntry) {
+      views.joinEntry.classList.add("scanner-active");
+    }
     if (els.joinEntryScannerActions) {
       els.joinEntryScannerActions.classList.add("hidden");
     }
@@ -349,7 +348,13 @@ async function startJoinScanner() {
       els.joinManualPanel.classList.add("hidden");
     }
     if (els.joinScannerStatus) {
-      els.joinScannerStatus.textContent = "Scanning...";
+      els.joinScannerStatus.textContent = supportsBarcodeDetector
+        ? "Scanning..."
+        : "Camera preview open. Auto-scan is not supported on this device.";
+    }
+
+    if (!detector) {
+      return;
     }
 
     const scan = async () => {

@@ -534,6 +534,12 @@ h3 {
   text-align: left;
 }
 
+#joinEntryView.scanner-active {
+  height: auto;
+  min-height: 340px;
+  justify-content: flex-start;
+}
+
 .join-entry-header {
   width: 100%;
   display: flex;
