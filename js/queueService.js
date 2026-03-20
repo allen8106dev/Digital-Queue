@@ -310,12 +310,6 @@ async function createQueue() {
     if (typeof window.__dqRegisterOwnerTab === "function") {
       window.__dqRegisterOwnerTab(queue.id, ownerTab);
     }
-
-    resetCreateView();
-    switchView(views.home);
-    history.replaceState({}, "", window.location.pathname);
-
-    setNotice("Queue created and opened in a new tab.");
   } catch (error) {
     // Queue was created, but a client-side UI/realtime step failed.
     console.error("Queue created but post-create UI update failed", error);
