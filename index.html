@@ -40,27 +40,28 @@
 
   <div class="app-shell" id="appShell">
     <header class="hero" id="heroSection" style="text-align:center;">
-      <h2 class="hero-title">Queue Management Made Simple</h2>
-      <p class="hero-subtitle">Organize, monitor, and manage queues in real-time</p>
+      <h2 class="hero-title">Create and Join Queues in Seconds</h2>
     </header>
 
     <section id="globalNotice" class="notice info hidden" role="status"></section>
 
-    <section id="homeView" class="view panel active" style="text-align:center;">
+    <section id="homeView" class="view active home-view" style="text-align:center;">
       <div id="authPanel" class="stack" style="margin-bottom:12px;">
-        <p class="home-auth-message" id="homeAuthMessage">Sign in from the top-right account menu to continue.</p>
+        <p class="home-auth-message" id="homeAuthMessage">Welcome</p>
       </div>
 
-      <div class="home-grid" style="max-width:500px; margin:auto;">
-        <button class="action-tile" id="goCreate" type="button">
-          <h3>Create Queue</h3>
-          <p style="color:var(--muted); font-size:0.85rem; margin:4px 0 0;">Set up and manage</p>
-        </button>
+      <div class="home-actions-box">
+        <div class="home-grid" style="max-width:500px; margin:auto;">
+          <button class="action-tile" id="goCreate" type="button">
+            <h3>Create Queue</h3>
+            <p style="color:var(--muted); font-size:0.85rem; margin:4px 0 0;">Set up and manage</p>
+          </button>
 
-        <button class="action-tile" id="goJoin" type="button">
-          <h3>Join Queue</h3>
-          <p style="color:var(--muted); font-size:0.85rem; margin:4px 0 0;">Get in line</p>
-        </button>
+          <button class="action-tile" id="goJoin" type="button">
+            <h3>Join Queue</h3>
+            <p style="color:var(--muted); font-size:0.85rem; margin:4px 0 0;">Get in line</p>
+          </button>
+        </div>
       </div>
     </section>
 

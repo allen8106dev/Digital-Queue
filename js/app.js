@@ -483,9 +483,11 @@ function updateAuthButton() {
   }
 
   if (homeAuthMessage) {
+    const googleProfile = user?.providerData?.find((provider) => provider?.providerId === "google.com");
+    const resolvedName = (googleProfile?.displayName || user?.displayName || user?.email || "").toString().trim();
     homeAuthMessage.textContent = user
-      ? `Welcome back, ${user.displayName || "User"}. Manage account options from the top-right menu.`
-      : "Sign in from the top-right account menu to continue.";
+      ? `Welcome, ${resolvedName || "User"}`
+      : "Welcome";
   }
 
   const goCreate = document.getElementById("goCreate");
