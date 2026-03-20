@@ -19,6 +19,7 @@ let joinScannerStream = null;
 let joinScannerFrameRequest = null;
 let joinScannerActive = false;
 const GOOGLE_ACCOUNT_LOGO_URL = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg";
+const ACCOUNT_AVATAR_KEY = "dq_account_avatar";
 
 const accountMenuBtn = document.getElementById("accountMenuBtn");
 const accountMenu = document.getElementById("accountMenu");
@@ -53,6 +54,23 @@ function goHome() {
   history.replaceState({}, "", window.location.pathname);
   clearNotice();
   switchView(views.home);
+}
+
+function resolveUserAvatar(user) {
+  if (!user) {
+    return "";
+  }
+
+  const primaryPhoto = typeof user.photoURL === "string" ? user.photoURL.trim() : "";
+  if (primaryPhoto) {
+    return primaryPhoto;
+  }
+
+  const providerPhoto = Array.isArray(user.providerData)
+    ? user.providerData.find((provider) => provider?.providerId === "google.com" && typeof provider.photoURL === "string" && provider.photoURL.trim())?.photoURL?.trim()
+    : "";
+
+  return providerPhoto || "";
 }
 
 function closeAccountMenu() {
@@ -323,9 +341,20 @@ function updateAuthButton() {
   const user = getUser();
 
   if (accountAvatar) {
-    const userPhoto = typeof user?.photoURL === "string" ? user.photoURL.trim() : "";
-    accountAvatar.src = userPhoto || GOOGLE_ACCOUNT_LOGO_URL;
+    const resolvedAvatar = resolveUserAvatar(user);
+    if (resolvedAvatar) {
+      accountAvatar.src = resolvedAvatar;
+      localStorage.setItem(ACCOUNT_AVATAR_KEY, resolvedAvatar);
+    } else {
+      const cachedAvatar = localStorage.getItem(ACCOUNT_AVATAR_KEY) || "";
+      accountAvatar.src = cachedAvatar || GOOGLE_ACCOUNT_LOGO_URL;
+    }
+
     accountAvatar.alt = user ? `${user.displayName || "Google"} profile photo` : "Google account";
+
+    if (!user) {
+      localStorage.removeItem(ACCOUNT_AVATAR_KEY);
+    }
   }
 
   if (accountMenuState) {
@@ -364,6 +393,8 @@ if (accountMenuBtn) {
 }
 
 if (accountAvatar) {
+  const cachedAvatar = localStorage.getItem(ACCOUNT_AVATAR_KEY) || "";
+  accountAvatar.src = cachedAvatar || GOOGLE_ACCOUNT_LOGO_URL;
   accountAvatar.addEventListener("error", () => {
     if (accountAvatar.src !== GOOGLE_ACCOUNT_LOGO_URL) {
       accountAvatar.src = GOOGLE_ACCOUNT_LOGO_URL;
