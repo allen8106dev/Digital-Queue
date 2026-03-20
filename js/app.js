@@ -695,6 +695,14 @@ els.endQueueBtn.onclick = async () => {
   const { endQueueAndReturnHome } = await getQueueService();
   endQueueAndReturnHome();
 };
+if (els.monitorEndQueueBtn) {
+  els.monitorEndQueueBtn.onclick = async () => {
+    const { endQueueAndReturnHome } = await getQueueService();
+    endQueueAndReturnHome();
+  };
+}
+// Expose goHome globally for queueService to call
+window.__dqGoHome = goHome;
 if (els.shareLinkBtn) {
   els.shareLinkBtn.onclick = async () => {
     await shareQueueLink();

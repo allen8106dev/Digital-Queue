@@ -75,7 +75,8 @@ const els = {
   createMetricPos: document.getElementById("createMetricPos"),
   createMetricTimer: document.getElementById("createMetricTimer"),
   createMonitorList: document.getElementById("createMonitorList"),
-  createMonitorEmpty: document.getElementById("createMonitorEmpty")
+  createMonitorEmpty: document.getElementById("createMonitorEmpty"),
+  monitorEndQueueBtn: document.getElementById("monitorEndQueueBtn")
 };
 
 function setLiveQueueMode(enabled) {

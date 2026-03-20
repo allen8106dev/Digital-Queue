@@ -324,6 +324,11 @@ async function createQueue() {
     if (typeof window.__dqRegisterOwnerTab === "function") {
       window.__dqRegisterOwnerTab(queue.id, ownerTab);
     }
+    
+    // Navigate the original tab back to home
+    if (typeof window.__dqGoHome === "function") {
+      window.__dqGoHome();
+    }
   } catch (error) {
     // Queue was created, but a client-side UI/realtime step failed.
     console.error("Queue created but post-create UI update failed", error);
