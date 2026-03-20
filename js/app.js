@@ -7,6 +7,7 @@ import {
   clearNotice,
   switchView
 } from "./ui.js";
+import { login, logout, getUser, initAuth } from "./auth.js";
 
 window.__dqAppReady = false;
 
@@ -189,8 +190,11 @@ async function initFromUrl() {
 
   if (!id) {
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
+    const user = getUser();
     if (savedName) {
       els.nameInput.value = savedName;
+    } else if (user && user.displayName) {
+      els.nameInput.value = user.displayName;
     }
 
     goHome();
@@ -202,8 +206,11 @@ async function initFromUrl() {
     localStorage.setItem(CLIENT_QUEUE_KEY, id);
   }
   const savedName = localStorage.getItem(CLIENT_NAME_KEY);
+  const user = getUser();
   if (savedName) {
     els.nameInput.value = savedName;
+  } else if (user && user.displayName) {
+    els.nameInput.value = user.displayName;
   }
 
   if (mode === "monitor") {
@@ -224,6 +231,50 @@ document.getElementById("toHomeFromJoin").onclick = goHome;
 document.getElementById("myQueueBackBtn").onclick = () => switchView(views.join);
 document.getElementById("backFromCreateSetup").onclick = goHome;
 window.handleHomeJoinClick = showJoinEntryView;
+
+// 🔐 AUTH
+const authBtn = document.getElementById("authBtn");
+if (authBtn) {
+  authBtn.onclick = async () => {
+    const user = getUser();
+    if (user) {
+      await logout();
+      updateAuthButton();
+    } else {
+      try {
+        await login();
+        updateAuthButton();
+      } catch (error) {
+        setNotice("Google Sign-in failed. Please try again.");
+      }
+    }
+  };
+}
+
+function updateAuthButton() {
+  const user = getUser();
+  if (authBtn) {
+    if (user) {
+      authBtn.textContent = `Logged in as ${user.displayName || "User"}`;
+      authBtn.classList.remove("btn-primary");
+      authBtn.classList.add("btn-ghost");
+    } else {
+      authBtn.textContent = "Sign in with Google";
+      authBtn.classList.add("btn-primary");
+      authBtn.classList.remove("btn-ghost");
+    }
+  }
+  
+  const goCreate = document.getElementById("goCreate");
+  const goJoin = document.getElementById("goJoin");
+  if (goCreate && goJoin) {
+    const disabled = !user;
+    goCreate.disabled = disabled;
+    goJoin.disabled = disabled;
+    goCreate.style.opacity = disabled ? "0.5" : "1";
+    goJoin.style.opacity = disabled ? "0.5" : "1";
+  }
+}
 
 if (els.joinEntryBackBtn) {
   els.joinEntryBackBtn.onclick = goHome;
@@ -348,6 +399,16 @@ els.queueList.addEventListener("click", (event) => {
 });
 
 async function bootstrap() {
+  await new Promise((resolve) => {
+    initAuth((user) => {
+      if (user) {
+        state.userId = user.uid;
+      }
+      updateAuthButton();
+      resolve();
+    });
+  });
+  
   await initFromUrl();
   window.__dqAppReady = true;
 }

@@ -8,6 +8,10 @@ import {
   updateDoc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth,
+  GoogleAuthProvider
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRa8Sc9MXuWhpYy5fyhYi-CKBac2uLuN8",
@@ -21,5 +25,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-export { db, doc, setDoc, getDoc, deleteDoc, updateDoc, onSnapshot };
+export { db, doc, setDoc, getDoc, deleteDoc, updateDoc, onSnapshot, auth, provider };

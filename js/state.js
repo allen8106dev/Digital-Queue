@@ -11,14 +11,8 @@ const state = {
   unsubscribe: null,
   queueTimerInterval: null,
   queueStartedAt: null,
-  userId: localStorage.getItem("dq_user")
+  userId: null
 };
-
-// ✅ persistent user ID
-if (!state.userId) {
-  state.userId = Math.random().toString(36).slice(2);
-  localStorage.setItem("dq_user", state.userId);
-}
 
 export {
   state,

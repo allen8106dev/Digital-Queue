@@ -2,6 +2,7 @@ import { db, doc, setDoc, getDoc, deleteDoc, updateDoc } from "./firebase.js";
 import { state, OWNER_QUEUE_KEY, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY } from "./state.js";
 import { randomId, buildJoinLink, normalizeQueue } from "./utils.js";
 import { startRealtime } from "./realtime.js";
+import { getUser } from "./auth.js";
 import {
   views,
   els,
@@ -69,9 +70,12 @@ async function openQueueForJoin(locatorOrQueueId) {
     renderJoinStatus(queue);
     renderMyQueueDetails(queue);
 
+    const user = getUser();
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
     if (savedName) {
       els.nameInput.value = savedName;
+    } else if (user && user.displayName) {
+      els.nameInput.value = user.displayName;
     }
 
     history.replaceState({}, "", `${window.location.pathname}?queue=${encodeURIComponent(queueId)}`);
@@ -150,6 +154,12 @@ async function endQueueAndReturnHome() {
 
 // 🔥 CREATE QUEUE
 async function createQueue() {
+  const user = getUser();
+  if (!user) {
+    setNotice("Sign in with Google to create a queue");
+    return;
+  }
+
   const title = els.titleInput.value.trim();
   if (!title) {
     setNotice("Enter a queue name");
@@ -196,6 +206,12 @@ async function createQueue() {
 
 // 🔥 JOIN QUEUE
 async function joinQueue() {
+  const user = getUser();
+  if (!user) {
+    setNotice("Sign in with Google to join a queue");
+    return;
+  }
+
   if (!state.currentQueueId) {
     setNotice("Open a valid queue link before joining");
     return;
@@ -217,11 +233,11 @@ async function joinQueue() {
     const queue = normalizeQueue(snap.data(), state.currentQueueId);
 
     // prevent duplicate join
-    const exists = queue.members.find(m => m.id === state.userId);
+    const exists = queue.members.find(m => m.id === user.uid);
 
     if (!exists) {
       queue.members.push({
-        id: state.userId,
+        id: user.uid,
         name,
         joinedAt: Date.now(),
         served: false
@@ -247,6 +263,12 @@ async function joinQueue() {
 }
 
 async function exitQueue() {
+  const user = getUser();
+  if (!user) {
+    setNotice("You are not signed in");
+    return;
+  }
+
   if (!state.currentQueueId) {
     return;
   }
@@ -267,7 +289,7 @@ async function exitQueue() {
     }
 
     const members = queue.members || [];
-    const updatedMembers = members.filter(m => m.id !== state.userId);
+    const updatedMembers = members.filter(m => m.id !== user.uid);
 
     if (updatedMembers.length === members.length) {
       setNotice("You are not in this queue");
