@@ -534,6 +534,18 @@ h3 {
   text-align: left;
 }
 
+.join-entry-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.join-entry-header h2 {
+  margin-bottom: 0;
+}
+
 .action-tile {
   border: 2px solid var(--stroke);
   border-radius: 14px;
