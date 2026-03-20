@@ -77,6 +77,24 @@ function clearStoredClientQueueId(userId) {
   localStorage.removeItem(CLIENT_QUEUE_KEY);
 }
 
+function renderOwnerQueueWorkspace(queue, queueId) {
+  state.currentQueueId = queueId;
+  state.currentJoinLink = buildJoinLink(queueId);
+  els.createQueueName.textContent = queue.title;
+  els.queueLink.textContent = state.currentJoinLink;
+  renderQr(state.currentJoinLink);
+  renderQueueDetailsMeta(queue);
+  els.createSetupPanel.classList.add("hidden");
+  els.createResult.classList.remove("hidden");
+  setLiveQueueMode(true);
+  state.ownerQueueActive = true;
+  switchView(views.create);
+  history.pushState({ ownerQueueGuard: true }, "", window.location.href);
+  renderCreateMonitor(queue);
+  startQueueTimer(queue.createdAt);
+  startRealtime();
+}
+
 async function openQueueForJoin(locatorOrQueueId) {
   const queueId = parseQueueIdFromLocator(locatorOrQueueId);
   if (!queueId) {
@@ -153,22 +171,58 @@ async function restoreOwnerQueueFromSession() {
     }
 
     const queue = normalizeQueue(queueData, storedQueueId);
+    renderOwnerQueueWorkspace(queue, storedQueueId);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-    state.currentQueueId = storedQueueId;
-    state.currentJoinLink = buildJoinLink(storedQueueId);
-    els.createQueueName.textContent = queue.title;
-    els.queueLink.textContent = state.currentJoinLink;
-    renderQr(state.currentJoinLink);
-    renderQueueDetailsMeta(queue);
-    els.createSetupPanel.classList.add("hidden");
-    els.createResult.classList.remove("hidden");
-    setLiveQueueMode(true);
-    state.ownerQueueActive = true;
-    switchView(views.create);
-    history.pushState({ ownerQueueGuard: true }, "", window.location.href);
-    renderCreateMonitor(queue);
-    startQueueTimer(queue.createdAt);
-    startRealtime();
+async function openQueueForOwner(queueId) {
+  const user = getUser();
+  if (!user) {
+    setNotice("Sign in with Google to manage this queue");
+    return false;
+  }
+
+  try {
+    const ref = doc(db, "queues", queueId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      setNotice("Queue not found");
+      return false;
+    }
+
+    const queueData = snap.data() || {};
+    if (queueData.ownerId && queueData.ownerId !== user.uid) {
+      setNotice("Only the queue creator can manage this queue");
+      return false;
+    }
+
+    localStorage.setItem(OWNER_QUEUE_KEY, queueId);
+    localStorage.setItem(OWNER_USER_KEY, user.uid);
+
+    const queue = normalizeQueue(queueData, queueId);
+    renderOwnerQueueWorkspace(queue, queueId);
+    clearNotice();
+    return true;
+  } catch {
+    setNotice("Error opening owner queue");
+    return false;
+  }
+}
+
+async function endQueueById(queueId) {
+  if (!queueId) {
+    return false;
+  }
+
+  try {
+    await deleteDoc(doc(db, "queues", queueId));
+    if (localStorage.getItem(OWNER_QUEUE_KEY) === queueId) {
+      localStorage.removeItem(OWNER_QUEUE_KEY);
+      localStorage.removeItem(OWNER_USER_KEY);
+    }
     return true;
   } catch {
     return false;
@@ -244,26 +298,24 @@ async function createQueue() {
   }
 
   try {
-    state.currentQueueId = queue.id;
-
-    const link = buildJoinLink(queue.id);
-    state.currentJoinLink = link;
-    els.createQueueName.textContent = queue.title;
-    els.queueLink.textContent = link;
-    renderQr(link);
-    renderQueueDetailsMeta(queue);
-    els.createSetupPanel.classList.add("hidden");
-    els.createResult.classList.remove("hidden");
-    setLiveQueueMode(true);
-    state.ownerQueueActive = true;
     localStorage.setItem(OWNER_QUEUE_KEY, queue.id);
     localStorage.setItem(OWNER_USER_KEY, user.uid);
-    history.pushState({ ownerQueueGuard: true }, "", window.location.href);
-    renderCreateMonitor(queue);
-    startQueueTimer(queue.createdAt);
-    startRealtime();
+    const ownerUrl = `${window.location.origin}${window.location.pathname}?queue=${encodeURIComponent(queue.id)}&mode=owner`;
+    const ownerTab = window.open(ownerUrl, "_blank");
+    if (!ownerTab) {
+      setNotice("Queue created. Allow pop-ups to open the owner tab.");
+      return;
+    }
 
-    clearNotice();
+    if (typeof window.__dqRegisterOwnerTab === "function") {
+      window.__dqRegisterOwnerTab(queue.id, ownerTab);
+    }
+
+    resetCreateView();
+    switchView(views.home);
+    history.replaceState({}, "", window.location.pathname);
+
+    setNotice("Queue created and opened in a new tab.");
   } catch (error) {
     // Queue was created, but a client-side UI/realtime step failed.
     console.error("Queue created but post-create UI update failed", error);
@@ -472,9 +524,11 @@ async function removeClient(memberId) {
 export {
   parseQueueIdFromLocator,
   openQueueForJoin,
+  openQueueForOwner,
   restoreOwnerQueueFromSession,
   getStoredClientQueueId,
   clearStoredClientQueueId,
+  endQueueById,
   endQueueAndReturnHome,
   createQueue,
   joinQueue,

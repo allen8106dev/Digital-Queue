@@ -33,6 +33,31 @@ const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const settingsDisplayName = document.getElementById("settingsDisplayName");
 const settingsRememberName = document.getElementById("settingsRememberName");
+let ownerTabWatchInterval = null;
+
+function stopOwnerTabWatch() {
+  if (ownerTabWatchInterval) {
+    clearInterval(ownerTabWatchInterval);
+    ownerTabWatchInterval = null;
+  }
+}
+
+window.__dqRegisterOwnerTab = (queueId, ownerTabWindow) => {
+  stopOwnerTabWatch();
+  if (!queueId || !ownerTabWindow) {
+    return;
+  }
+
+  ownerTabWatchInterval = window.setInterval(async () => {
+    if (!ownerTabWindow.closed) {
+      return;
+    }
+
+    stopOwnerTabWatch();
+    const { endQueueById } = await getQueueService();
+    await endQueueById(queueId);
+  }, 1000);
+};
 
 async function getQueueService() {
   if (!queueServiceModulePromise) {
@@ -347,7 +372,7 @@ async function initFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("queue");
   const mode = params.get("mode");
-  const { openQueueForJoin, restoreOwnerQueueFromSession, getStoredClientQueueId, clearStoredClientQueueId } = await getQueueService();
+  const { openQueueForJoin, openQueueForOwner, restoreOwnerQueueFromSession, getStoredClientQueueId, clearStoredClientQueueId } = await getQueueService();
   const user = getUser();
 
   if (!id) {
@@ -390,7 +415,12 @@ async function initFromUrl() {
     els.nameInput.value = user.displayName;
   }
 
-  if (mode === "monitor") {
+  if (mode === "owner") {
+    const opened = await openQueueForOwner(id);
+    if (!opened) {
+      goHome();
+    }
+  } else if (mode === "monitor") {
     switchView(views.monitor);
     const { startRealtime } = await getRealtime();
     startRealtime();
@@ -615,6 +645,17 @@ window.addEventListener("popstate", async () => {
   if (!ended) {
     history.pushState({ ownerQueueGuard: true }, "", window.location.href);
   }
+});
+
+window.addEventListener("beforeunload", (event) => {
+  const params = new URLSearchParams(window.location.search);
+  const isOwnerTab = params.get("mode") === "owner";
+  if (!isOwnerTab || !state.ownerQueueActive) {
+    return;
+  }
+
+  event.preventDefault();
+  event.returnValue = "Closing this tab will end the queue.";
 });
 
 // 🎯 ACTIONS
