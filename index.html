@@ -41,15 +41,14 @@
   <div class="app-shell" id="appShell">
     <header class="hero" id="heroSection" style="text-align:center;">
       <h2 class="hero-title">Create and Join Queues in Seconds</h2>
+      <div id="authPanel" class="hero-auth-panel">
+        <p class="home-auth-message" id="homeAuthMessage">Welcome</p>
+      </div>
     </header>
 
     <section id="globalNotice" class="notice info hidden" role="status"></section>
 
     <section id="homeView" class="view active home-view" style="text-align:center;">
-      <div id="authPanel" class="stack" style="margin-bottom:12px;">
-        <p class="home-auth-message" id="homeAuthMessage">Welcome</p>
-      </div>
-
       <div class="home-actions-box">
         <div class="home-grid" style="max-width:500px; margin:auto;">
           <button class="action-tile" id="goCreate" type="button">
@@ -140,7 +139,6 @@
 
     <section id="joinEntryView" class="view panel stack" hidden style="display:none;">
       <h2>Find a Queue</h2>
-      <p class="join-entry-copy" id="joinEntryCopy">Paste a queue link or code to find and join a queue.</p>
 
       <div id="joinEntryScannerActions" class="toolbar hidden">
         <button class="btn-primary" id="openScannerBtn" type="button">📷 Open QR Scanner</button>
@@ -156,8 +154,7 @@
       </div>
 
       <div id="joinManualPanel" class="stack">
-        <label for="joinQueueLocatorInput">Queue Link or Code</label>
-        <input id="joinQueueLocatorInput" placeholder="Paste a link or code (e.g., abc123)">
+        <input id="joinQueueLocatorInput" placeholder="Enter queue code (e.g., abc123)" aria-label="Queue code">
 
         <div class="toolbar">
           <button class="btn-primary" id="joinEntryContinueBtn" type="button">Continue</button>

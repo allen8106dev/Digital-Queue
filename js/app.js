@@ -245,8 +245,8 @@ function setJoinEntryMode() {
   const mobile = isMobileDevice();
   if (els.joinEntryCopy) {
     els.joinEntryCopy.textContent = mobile
-      ? "Scan a queue QR code or enter a queue link/code to continue."
-      : "Enter a queue link or queue code to continue.";
+      ? "Scan a queue QR code or enter a queue code to continue."
+      : "Enter a queue code to continue.";
   }
 
   if (els.joinEntryScannerActions) {
@@ -279,7 +279,7 @@ function showJoinEntryView() {
 async function continueJoinEntry(locatorValue) {
   const locator = String(locatorValue || els.joinQueueLocatorInput?.value || "").trim();
   if (!locator) {
-    setNotice("Enter a queue link or code");
+    setNotice("Enter a queue code");
     return;
   }
 
@@ -311,7 +311,7 @@ async function startJoinScanner() {
   }
 
   if (!("BarcodeDetector" in window)) {
-    setNotice("QR scanner is not supported on this device. Use link/code entry.");
+    setNotice("QR scanner is not supported on this device. Use queue code entry.");
     if (els.joinManualPanel) {
       els.joinManualPanel.classList.remove("hidden");
     }
@@ -373,7 +373,7 @@ async function startJoinScanner() {
     scan();
   } catch {
     stopJoinScanner();
-    setNotice("Could not open camera. Use link/code entry.");
+    setNotice("Could not open camera. Use queue code entry.");
     if (els.joinManualPanel) {
       els.joinManualPanel.classList.remove("hidden");
     }

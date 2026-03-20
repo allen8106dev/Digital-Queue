@@ -101,7 +101,7 @@ function renderOwnerQueueWorkspace(queue, queueId) {
 async function openQueueForJoin(locatorOrQueueId) {
   const queueId = parseQueueIdFromLocator(locatorOrQueueId);
   if (!queueId) {
-    setNotice("Enter a queue link or code");
+    setNotice("Enter a queue code");
     return false;
   }
 
@@ -359,7 +359,7 @@ async function joinQueue() {
   }
 
   if (!state.currentQueueId) {
-    setNotice("Open a valid queue link before joining");
+    setNotice("Open a valid queue code before joining");
     return;
   }
 
