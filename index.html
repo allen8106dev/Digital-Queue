@@ -7,26 +7,39 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="brand">
+        <h1 class="brand-title">Digital Queue Pro</h1>
+      </div>
+      <div class="navbar-actions">
+        <p class="app-version">v<span id="appVersion">1.00.5</span></p>
+      </div>
+    </div>
+  </nav>
+
   <div class="app-shell">
     <header class="hero" style="text-align:center;">
-      <h1>Digital Queue Pro</h1>
-      <p class="app-version">Version <strong id="appVersion">1.00.5</strong></p>
+      <h2 class="hero-title">Queue Management Made Simple</h2>
+      <p class="hero-subtitle">Organize, monitor, and manage queues in real-time</p>
     </header>
 
     <section id="globalNotice" class="notice info hidden" role="status"></section>
 
     <section id="homeView" class="view panel active" style="text-align:center;">
-      <div id="authPanel" class="stack" style="margin-bottom:20px;">
+      <div id="authPanel" class="stack" style="margin-bottom:12px;">
         <button class="btn-primary" id="authBtn" type="button">Sign in with Google</button>
       </div>
 
-      <div class="home-grid" style="grid-template-columns:1fr; max-width:300px; margin:auto;">
+      <div class="home-grid" style="max-width:500px; margin:auto;">
         <button class="action-tile" id="goCreate" type="button">
           <h3>Create Queue</h3>
+          <p style="color:var(--muted); font-size:0.85rem; margin:4px 0 0;">Set up and manage</p>
         </button>
 
         <button class="action-tile" id="goJoin" type="button">
           <h3>Join Queue</h3>
+          <p style="color:var(--muted); font-size:0.85rem; margin:4px 0 0;">Get in line</p>
         </button>
       </div>
     </section>
@@ -37,28 +50,30 @@
       <div id="createSetupPanel" class="stack">
         <div>
           <label for="titleInput">Queue Name</label>
-          <input id="titleInput" placeholder="Example: Pharmacy Counter">
+          <input id="titleInput" placeholder="e.g., Pharmacy Counter, Customer Service">
         </div>
 
         <div class="toolbar">
-          <button class="btn-primary" id="createBtn" type="button">Create</button>
+          <button class="btn-primary" id="createBtn" type="button">Create Queue</button>
           <button class="btn-ghost" id="backFromCreateSetup" type="button">Back</button>
         </div>
       </div>
 
       <div id="createResult" class="stack hidden">
-        <label>Queue Details</label>
-        <div class="meta-grid" style="margin-bottom:10px; grid-template-columns: repeat(1, minmax(0, 1fr));">
-          <div class="meta-card"><span>Queue Name</span><strong id="createQueueName">-</strong></div>
+        <div style="margin-bottom:8px;">
+          <small style="color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:0.05em;">Queue Name</small>
+          <h3 style="margin:4px 0 0;">
+            <strong id="createQueueName">-</strong>
+          </h3>
         </div>
 
         <div id="createSharePanel" class="section-box stack">
-          <h3 class="section-title">Queue QR & Link</h3>
+          <h3 class="section-title">📱 Share Queue</h3>
           <div class="copy-row">
             <label style="margin-bottom:0;">QR Code</label>
             <button class="copy-mini" id="copyQrBtn" type="button">Copy</button>
           </div>
-          <div id="qr"></div>
+          <div id="qr" style="text-align:center;"></div>
           <div class="copy-row">
             <label style="margin-bottom:0;">Queue Link</label>
             <button class="copy-mini" id="copyLinkBtn" type="button">Copy</button>
@@ -67,7 +82,7 @@
         </div>
 
         <div id="createMonitorPanel" class="section-box stack">
-          <h3 class="section-title">Live Queue</h3>
+          <h3 class="section-title">📊 Live Queue Monitor</h3>
           <div class="toolbar">
             <button class="btn-primary" id="createNextBtn" type="button">Serve Next</button>
             <button class="btn-ghost" id="createRefreshBtn" type="button">Refresh</button>
@@ -77,27 +92,26 @@
             <div class="meta-card"><span>Total</span><strong id="createMetricTotal">0</strong></div>
             <div class="meta-card"><span>Serving</span><strong id="createMetricServing">-</strong></div>
             <div class="meta-card"><span>Avg Serve</span><strong id="createMetricAvg">-</strong></div>
-            <div class="meta-card"><span>You</span><strong id="createMetricPos">-</strong></div>
-            <div class="meta-card"><span>Queue Timer</span><strong id="createMetricTimer">00:00:00</strong></div>
+            <div class="meta-card"><span>Timer</span><strong id="createMetricTimer">00:00:00</strong></div>
           </div>
 
           <div id="createMonitorList" class="list"></div>
-          <p id="createMonitorEmpty">No one in queue</p>
+          <p id="createMonitorEmpty" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
         </div>
 
         <div class="toolbar" style="justify-content:flex-end;">
-          <button class="btn-ghost" id="endQueueBtn" type="button">End Queue</button>
+          <button class="btn-danger" id="endQueueBtn" type="button">End Queue</button>
         </div>
       </div>
     </section>
 
     <section id="joinEntryView" class="view panel stack" hidden style="display:none;">
       <h2>Find a Queue</h2>
-      <p class="join-entry-copy" id="joinEntryCopy">Paste a queue link or code to continue.</p>
+      <p class="join-entry-copy" id="joinEntryCopy">Paste a queue link or code to find and join a queue.</p>
 
       <div id="joinEntryScannerActions" class="toolbar hidden">
-        <button class="btn-primary" id="openScannerBtn" type="button">Open QR Scanner</button>
-        <button class="btn-ghost" id="showManualJoinBtn" type="button">Enter Link or Code</button>
+        <button class="btn-primary" id="openScannerBtn" type="button">📷 Open QR Scanner</button>
+        <button class="btn-ghost" id="showManualJoinBtn" type="button">Manual Entry</button>
       </div>
 
       <div id="joinScannerPanel" class="stack hidden">
@@ -110,7 +124,7 @@
 
       <div id="joinManualPanel" class="stack">
         <label for="joinQueueLocatorInput">Queue Link or Code</label>
-        <input id="joinQueueLocatorInput" placeholder="https://... ?queue=abc123 or abc123">
+        <input id="joinQueueLocatorInput" placeholder="Paste a link or code (e.g., abc123)">
 
         <div class="toolbar">
           <button class="btn-primary" id="joinEntryContinueBtn" type="button">Continue</button>
@@ -124,55 +138,56 @@
 
       <div class="join-header-card">
         <div class="join-header-row">
-          <small>Queue Name</small>
+          <small>📋 Queue Name</small>
           <strong id="joinQueueName">-</strong>
         </div>
         <div class="join-header-row">
-          <small>Queue Code</small>
+          <small>🔐 Queue Code</small>
           <strong id="joinQueueCode">-</strong>
         </div>
       </div>
 
       <label for="nameInput">Your Name</label>
-      <input id="nameInput" placeholder="Your name">
+      <input id="nameInput" placeholder="Enter your name">
 
       <div class="toolbar">
-        <button class="btn-primary" id="joinBtn" type="button">Join</button>
+        <button class="btn-primary" id="joinBtn" type="button">Join Queue</button>
         <button class="btn-ghost" id="toHomeFromJoin" type="button">Back</button>
-        <button class="btn-ghost" id="exitQueueBtn" type="button">Exit Queue</button>
       </div>
 
       <div id="joinStatus" class="status-block hidden"></div>
+
+      <div style="border-top: 1px solid var(--stroke); padding-top: 12px; margin-top: 4px;">
+        <button class="btn-danger" id="exitQueueBtn" type="button" style="width:100%; text-align:center;">Exit Without Joining</button>
+      </div>
     </section>
 
     <section id="myQueueView" class="view panel stack" hidden style="display:none;">
       <div class="personal-title">
-        <h2>Your Queue Details</h2>
-        <p>Track your live queue status below.</p>
+        <h2>Your Position in Queue</h2>
+        <p>Live updates as you move through the queue.</p>
       </div>
 
       <div class="personal-grid">
         <div class="personal-card"><span>Queue Name</span><strong id="myQueueName">-</strong></div>
-        <div class="personal-card"><span>Queue Code</span><strong id="myQueueCode">-</strong></div>
         <div class="personal-card"><span>Your Name</span><strong id="myQueueUserName">-</strong></div>
-        <div class="personal-card"><span>Your Position</span><strong id="myQueuePosition">-</strong></div>
-        <div class="personal-card"><span>ETA</span><strong id="myQueueEta">-</strong></div>
+        <div class="personal-card"><span>Position</span><strong id="myQueuePosition">-</strong></div>
         <div class="personal-card"><span>Now Serving</span><strong id="myQueueServing">-</strong></div>
       </div>
 
-      <div id="myQueueNote" class="status-block">Waiting for your queue details...</div>
+      <div id="myQueueNote" class="status-block">Waiting for queue details...</div>
 
       <div class="toolbar">
-        <button class="btn-ghost" id="myQueueBackBtn" type="button">Back to Join</button>
+        <button class="btn-ghost" id="myQueueBackBtn" type="button">Back</button>
         <button class="btn-danger" id="myQueueExitBtn" type="button">Exit Queue</button>
       </div>
     </section>
 
     <section id="monitorView" class="view panel stack" hidden style="display:none;">
-      <h2 id="queueTitle">Queue</h2>
+      <h2 id="queueTitle">📊 Queue Monitor</h2>
 
       <div class="toolbar">
-        <button class="btn-primary" id="nextBtn" type="button">Serve Next</button>
+        <button class="btn-primary" id="nextBtn" type="button">✅ Serve Next</button>
         <button class="btn-ghost" id="refreshBtn" type="button">Refresh</button>
       </div>
 
@@ -180,14 +195,19 @@
         <div class="meta-card"><span>Total</span><strong id="metricTotal">0</strong></div>
         <div class="meta-card"><span>Serving</span><strong id="metricServing">-</strong></div>
         <div class="meta-card"><span>Avg Serve</span><strong id="metricAvg">-</strong></div>
-        <div class="meta-card"><span>You</span><strong id="metricPos">-</strong></div>
-        <div class="meta-card"><span>Queue Timer</span><strong id="metricTimer">00:00:00</strong></div>
+        <div class="meta-card"><span>Timer</span><strong id="metricTimer">00:00:00</strong></div>
       </div>
 
       <div id="queueList" class="list"></div>
-      <p id="emptyQueue">No one in queue</p>
+      <p id="emptyQueue" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
     </section>
   </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2026 Digital Queue Pro. All rights reserved.</p>
+    </div>
+  </footer>
 
   <script type="module" src="./js/app.js"></script>
   <script>
