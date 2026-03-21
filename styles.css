@@ -1671,14 +1671,15 @@ body.live-queue-mode #createSetupPanel {
   }
 
   .live-queue-top-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) max-content;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   .live-queue-top-row h2 {
     grid-column: 1;
     grid-row: 1;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1693,6 +1694,7 @@ body.live-queue-mode #createSetupPanel {
     width: auto;
     align-items: flex-end;
     justify-self: end;
+    flex-shrink: 0;
   }
 
   .meta-grid-inline {
@@ -1736,10 +1738,15 @@ body.live-queue-mode #createSetupPanel {
     max-width: max-content;
     width: auto;
     justify-content: center;
-    padding: 6px 10px;
-    font-size: 0.78rem;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    line-height: 1;
     border-radius: 8px;
-    gap: 4px;
+    gap: 2px;
+  }
+
+  .live-queue-top-row .queue-details-toggle .queue-details-toggle-icon {
+    display: none;
   }
 
   body.live-queue-mode #createMonitorPanel,
