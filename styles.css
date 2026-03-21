@@ -1748,10 +1748,6 @@ body.live-queue-mode #createSetupPanel {
     gap: 2px;
   }
 
-  .live-queue-top-row .queue-details-toggle .queue-details-toggle-icon {
-    display: none;
-  }
-
   body.live-queue-mode #createMonitorPanel,
   #monitorView {
     padding: 12px;
