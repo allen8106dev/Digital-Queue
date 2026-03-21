@@ -9,6 +9,7 @@ import {
 import { login, logout, getUser, initAuth } from "./auth.js";
 
 window.__dqAppReady = false;
+const MODULE_VERSION = "2026.03.21.1";
 
 const SETTINGS_REMEMBER_NAME_KEY = "dqRememberName";
 
@@ -38,14 +39,14 @@ const settingsRememberName = document.getElementById("settingsRememberName");
 
 async function getQueueService() {
   if (!queueServiceModulePromise) {
-    queueServiceModulePromise = import("./queueService.js");
+    queueServiceModulePromise = import(`./queueService.js?v=${MODULE_VERSION}`);
   }
   return queueServiceModulePromise;
 }
 
 async function getRealtime() {
   if (!realtimeModulePromise) {
-    realtimeModulePromise = import("./realtime.js");
+    realtimeModulePromise = import(`./realtime.js?v=${MODULE_VERSION}`);
   }
   return realtimeModulePromise;
 }
