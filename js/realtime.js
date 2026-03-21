@@ -11,7 +11,8 @@ import {
   renderCreateMonitor,
   renderMonitor,
   startQueueTimer,
-  stopQueueTimer
+  stopQueueTimer,
+  resetCreateView
 } from "./ui.js";
 
 function handleMissingQueue() {
@@ -32,11 +33,13 @@ function handleMissingQueue() {
   }
 
   stopQueueTimer();
+  resetCreateView();
   if (state.unsubscribe) {
     state.unsubscribe();
     state.unsubscribe = null;
   }
   state.currentQueueId = null;
+  state.ownerQueueActive = false;
 
   const isInActiveQueueView =
     (views.join && views.join.style.display !== "none") ||

@@ -5,7 +5,8 @@ import {
   setNotice,
   clearNotice,
   switchView,
-  setLiveQueueMode
+  setLiveQueueMode,
+  resetCreateView
 } from "./ui.js";
 import { login, logout, getUser, initAuth } from "./auth.js";
 
@@ -466,7 +467,12 @@ function syncMyQueueBackGuard() {
 }
 
 // 🎯 NAVIGATION
-document.getElementById("goCreate").onclick = () => switchView(views.create);
+document.getElementById("goCreate").onclick = () => {
+  if (!state.ownerQueueActive) {
+    resetCreateView();
+  }
+  switchView(views.create);
+};
 document.getElementById("goJoin").onclick = showJoinEntryView;
 document.getElementById("toHomeFromJoin").onclick = goHome;
 const myQueueBackBtn = document.getElementById("myQueueBackBtn");
