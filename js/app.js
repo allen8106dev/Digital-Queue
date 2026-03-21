@@ -398,22 +398,10 @@ async function initFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("queue");
   const mode = params.get("mode");
-  const { openQueueForJoin, openQueueForOwner, restoreOwnerQueueFromSession, restoreClientQueueFromSession } = await getQueueService();
+  const { openQueueForJoin, openQueueForOwner } = await getQueueService();
   const user = getUser();
 
   if (!id) {
-    const ownerRestored = await restoreOwnerQueueFromSession();
-    if (ownerRestored) {
-      clearNotice();
-      return;
-    }
-
-    const clientRestored = await restoreClientQueueFromSession();
-    if (clientRestored) {
-      clearNotice();
-      return;
-    }
-
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
     if (savedName) {
       els.nameInput.value = savedName;
