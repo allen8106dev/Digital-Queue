@@ -1671,9 +1671,10 @@ body.live-queue-mode #createSetupPanel {
   }
 
   .live-queue-top-row {
-    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
+    width: 100%;
   }
 
   .live-queue-top-row h2 {
@@ -1695,6 +1696,7 @@ body.live-queue-mode #createSetupPanel {
     align-items: flex-end;
     justify-self: end;
     flex-shrink: 0;
+    margin-left: auto;
   }
 
   .meta-grid-inline {
@@ -1735,11 +1737,12 @@ body.live-queue-mode #createSetupPanel {
 
   .queue-details-toggle {
     min-width: 0;
-    max-width: max-content;
+    max-width: none;
     width: auto;
     justify-content: center;
-    padding: 4px 8px;
-    font-size: 0.72rem;
+    padding: 3px 7px;
+    font-size: 0.7rem;
+    font-weight: 700;
     line-height: 1;
     border-radius: 8px;
     gap: 2px;
