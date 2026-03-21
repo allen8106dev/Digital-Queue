@@ -21,65 +21,14 @@ import {
   resetCreateView
 } from "./ui.js";
 
-const USER_SESSION_COLLECTION = "user_sessions";
-
-function getUserSessionRef(userId) {
-  if (!userId) {
-    return null;
-  }
-  return doc(db, USER_SESSION_COLLECTION, userId);
-}
-
-async function getUserSession(userId) {
-  const sessionRef = getUserSessionRef(userId);
-  if (!sessionRef) {
-    return null;
-  }
-
-  try {
-    const snap = await getDoc(sessionRef);
-    if (!snap.exists()) {
-      return null;
-    }
-    return snap.data() || null;
-  } catch {
-    return null;
-  }
-}
-
-async function patchUserSession(userId, patch) {
-  const sessionRef = getUserSessionRef(userId);
-  if (!sessionRef) {
-    return;
-  }
-
-  try {
-    await setDoc(sessionRef, patch, { merge: true });
-  } catch {
-    // Session sync should never block queue actions.
-  }
-}
-
 async function setOwnerSessionQueue(userId, queueId) {
-  if (!userId) {
-    return;
-  }
-
-  await patchUserSession(userId, {
-    activeOwnerQueueId: queueId || null,
-    ownerUpdatedAt: Date.now()
-  });
+  void userId;
+  void queueId;
 }
 
 async function setClientSessionQueue(userId, queueId) {
-  if (!userId) {
-    return;
-  }
-
-  await patchUserSession(userId, {
-    activeClientQueueId: queueId || null,
-    clientUpdatedAt: Date.now()
-  });
+  void userId;
+  void queueId;
 }
 
 function parseQueueIdFromLocator(locator) {
@@ -244,17 +193,7 @@ async function restoreOwnerQueueFromSession() {
       : storedQueueId;
 
   if (!scopedStoredQueueId) {
-    const session = await getUserSession(user.uid);
-    const cloudQueueId = typeof session?.activeOwnerQueueId === "string" ? session.activeOwnerQueueId.trim() : "";
-    if (!cloudQueueId) {
-      return false;
-    }
-
-    const openedFromCloud = await openQueueForOwner(cloudQueueId);
-    if (!openedFromCloud) {
-      await setOwnerSessionQueue(user.uid, null);
-    }
-    return openedFromCloud;
+    return false;
   }
 
   try {
@@ -298,17 +237,7 @@ async function restoreClientQueueFromSession() {
     clearStoredClientQueueId(user.uid);
   }
 
-  const session = await getUserSession(user.uid);
-  const cloudQueueId = typeof session?.activeClientQueueId === "string" ? session.activeClientQueueId.trim() : "";
-  if (!cloudQueueId) {
-    return false;
-  }
-
-  const openedCloud = await openQueueForJoin(cloudQueueId, { requireMembership: true });
-  if (!openedCloud) {
-    await setClientSessionQueue(user.uid, null);
-  }
-  return openedCloud;
+  return false;
 }
 
 async function openQueueForOwner(queueId) {
