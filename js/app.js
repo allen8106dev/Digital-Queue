@@ -4,7 +4,8 @@ import {
   els,
   setNotice,
   clearNotice,
-  switchView
+  switchView,
+  setLiveQueueMode
 } from "./ui.js";
 import { login, logout, getUser, initAuth } from "./auth.js";
 
@@ -54,6 +55,8 @@ async function getRealtime() {
 function goHome() {
   stopJoinScanner();
   history.replaceState({}, "", window.location.pathname);
+  state.ownerQueueActive = false;
+  setLiveQueueMode(false);
   clearNotice();
   switchView(views.home);
 }

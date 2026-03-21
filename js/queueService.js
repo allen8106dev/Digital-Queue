@@ -316,6 +316,11 @@ async function endQueueAndReturnHome() {
     return false;
   }
 
+  if (state.unsubscribe) {
+    state.unsubscribe();
+    state.unsubscribe = null;
+  }
+
   try {
     if (state.currentQueueId) {
       await deleteDoc(doc(db, "queues", state.currentQueueId));
@@ -323,11 +328,6 @@ async function endQueueAndReturnHome() {
   } catch {
     setNotice("Error ending queue");
     return false;
-  }
-
-  if (state.unsubscribe) {
-    state.unsubscribe();
-    state.unsubscribe = null;
   }
 
   state.currentQueueId = null;
