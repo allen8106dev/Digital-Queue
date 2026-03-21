@@ -17,6 +17,7 @@ let realtimeModulePromise = null;
 let joinScannerStream = null;
 let joinScannerFrameRequest = null;
 let joinScannerActive = false;
+let myQueueBackGuardActive = false;
 const GOOGLE_ACCOUNT_LOGO_URL = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg";
 const ACCOUNT_AVATAR_KEY = "dq_account_avatar";
 
@@ -450,11 +451,36 @@ async function initFromUrl() {
   }
 }
 
+function getMyQueueUrl() {
+  const queueId = state.currentQueueId ? encodeURIComponent(state.currentQueueId) : "";
+  if (!queueId) {
+    return window.location.pathname;
+  }
+  return `${window.location.pathname}?queue=${queueId}`;
+}
+
+function syncMyQueueBackGuard() {
+  const isMyQueueActive = Boolean(views.myQueue && !views.myQueue.hidden && state.currentQueueId);
+
+  if (isMyQueueActive && !myQueueBackGuardActive) {
+    history.pushState({ dqMyQueueGuard: true }, "", getMyQueueUrl());
+    myQueueBackGuardActive = true;
+    return;
+  }
+
+  if (!isMyQueueActive) {
+    myQueueBackGuardActive = false;
+  }
+}
+
 // 🎯 NAVIGATION
 document.getElementById("goCreate").onclick = () => switchView(views.create);
 document.getElementById("goJoin").onclick = showJoinEntryView;
 document.getElementById("toHomeFromJoin").onclick = goHome;
-document.getElementById("myQueueBackBtn").onclick = () => switchView(views.join);
+const myQueueBackBtn = document.getElementById("myQueueBackBtn");
+if (myQueueBackBtn) {
+  myQueueBackBtn.onclick = () => switchView(views.join);
+}
 document.getElementById("backFromCreateSetup").onclick = goHome;
 window.handleHomeJoinClick = showJoinEntryView;
 
@@ -618,6 +644,7 @@ document.addEventListener("keydown", (event) => {
 
 document.addEventListener("dq:view-change", () => {
   updateAccountHubVisibility();
+  syncMyQueueBackGuard();
 });
 
 if (els.joinEntryBackBtn) {
@@ -671,7 +698,20 @@ if (els.closeScannerBtn) {
 }
 
 window.addEventListener("popstate", async () => {
-  // Browser navigation is now non-destructive; queue lifecycle is controlled by explicit actions.
+  const isMyQueueActive = Boolean(views.myQueue && !views.myQueue.hidden && state.currentQueueId);
+  if (!isMyQueueActive) {
+    return;
+  }
+
+  const confirmed = window.confirm("Exit queue now? You will lose your position.");
+  if (!confirmed) {
+    history.pushState({ dqMyQueueGuard: true }, "", getMyQueueUrl());
+    myQueueBackGuardActive = true;
+    return;
+  }
+
+  const { exitQueue } = await getQueueService();
+  await exitQueue({ skipConfirmation: true, skipReload: true });
 });
 
 // 🎯 ACTIONS

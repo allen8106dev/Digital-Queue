@@ -565,7 +565,9 @@ async function joinQueue() {
   }
 }
 
-async function exitQueue() {
+async function exitQueue(options = {}) {
+  const skipConfirmation = Boolean(options.skipConfirmation);
+  const skipReload = Boolean(options.skipReload);
   const user = getUser();
   if (!user) {
     setNotice("You are not signed in");
@@ -576,9 +578,11 @@ async function exitQueue() {
     return;
   }
 
-  const confirmed = window.confirm("Are you sure you want to exit this queue?");
-  if (!confirmed) {
-    return;
+  if (!skipConfirmation) {
+    const confirmed = window.confirm("Exit queue now? You will lose your position.");
+    if (!confirmed) {
+      return;
+    }
   }
 
   try {
@@ -603,8 +607,18 @@ async function exitQueue() {
     clearStoredClientQueueId(user.uid);
     await setClientSessionQueue(user.uid, null);
     localStorage.removeItem(CLIENT_NAME_KEY);
+    if (state.unsubscribe) {
+      state.unsubscribe();
+      state.unsubscribe = null;
+    }
+    state.currentQueueId = null;
     els.joinStatus.classList.add("hidden");
     setNotice("You exited the queue");
+    if (skipReload) {
+      switchView(views.home);
+      history.replaceState({}, "", window.location.pathname);
+      return;
+    }
     window.location.href = window.location.pathname;
   } catch {
     setNotice("Error exiting queue");
