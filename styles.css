@@ -1671,27 +1671,33 @@ body.live-queue-mode #createSetupPanel {
   }
 
   .live-queue-top-row {
-    grid-template-columns: 1fr;
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     gap: 8px;
   }
 
   .live-queue-top-row h2 {
-    white-space: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: 1.12rem;
-    order: 1;
+    order: 0;
   }
 
   .live-queue-top-row .queue-details-dropdown {
-    order: 2;
+    order: 0;
+    width: auto;
+    align-items: flex-end;
+    justify-self: end;
   }
 
   .meta-grid-inline {
-    order: 3;
+    order: 0;
     grid-template-columns: repeat(4, minmax(80px, 1fr));
     gap: 6px;
     width: 100%;
     align-items: stretch;
+    grid-column: 1 / -1;
   }
 
   .meta-grid-inline .meta-card {
@@ -1716,13 +1722,17 @@ body.live-queue-mode #createSetupPanel {
   }
 
   .queue-details-dropdown {
-    width: 100%;
-    align-items: stretch;
+    width: auto;
+    align-items: flex-end;
   }
 
   .queue-details-toggle {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    justify-content: center;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+    gap: 4px;
   }
 
   body.live-queue-mode #createMonitorPanel,
