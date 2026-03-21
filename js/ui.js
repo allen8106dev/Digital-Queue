@@ -38,6 +38,8 @@ const els = {
   createQueueCode: document.getElementById("createQueueCode"),
   joinQueueName: document.getElementById("joinQueueName"),
   joinQueueCode: document.getElementById("joinQueueCode"),
+  joinStartDate: document.getElementById("joinStartDate"),
+  joinStartTime: document.getElementById("joinStartTime"),
   joinEntryCopy: document.getElementById("joinEntryCopy"),
   joinEntryScannerActions: document.getElementById("joinEntryScannerActions"),
   joinManualPanel: document.getElementById("joinManualPanel"),
@@ -173,6 +175,15 @@ function renderJoinStatus(queue) {
 function renderJoinSummary(queue) {
   els.joinQueueName.textContent = queue.title || "Queue";
   els.joinQueueCode.textContent = queue.id || state.currentQueueId || "-";
+  const createdAt = Number(queue.createdAt);
+  if (!Number.isFinite(createdAt) || createdAt <= 0) {
+    els.joinStartDate.textContent = "-";
+    els.joinStartTime.textContent = "-";
+    return;
+  }
+  const startedAt = new Date(createdAt);
+  els.joinStartDate.textContent = startedAt.toLocaleDateString();
+  els.joinStartTime.textContent = startedAt.toLocaleTimeString();
 }
 
 function renderMyQueueDetails(queue) {

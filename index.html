@@ -174,13 +174,24 @@
       <h2>Join Queue</h2>
 
       <div class="join-header-card">
-        <div class="join-header-row">
-          <small>📋 Queue Name</small>
-          <strong id="joinQueueName">-</strong>
-        </div>
-        <div class="join-header-row">
-          <small>🔐 Queue Code</small>
-          <strong id="joinQueueCode">-</strong>
+        <div class="detail-meta-grid">
+          <div class="detail-row">
+            <div class="detail-copy">
+              <small>Queue Name</small>
+              <strong id="joinQueueName">-</strong>
+              <small>Queue Code</small>
+              <strong id="joinQueueCode">-</strong>
+            </div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-copy">
+              <small>Date</small>
+              <strong id="joinStartDate">-</strong>
+              <small>Time</small>
+              <strong id="joinStartTime">-</strong>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -193,10 +204,6 @@
       </div>
 
       <div id="joinStatus" class="status-block hidden"></div>
-
-      <div style="border-top: 1px solid var(--stroke); padding-top: 12px; margin-top: 4px;">
-        <button class="btn-danger" id="exitQueueBtn" type="button" style="width:100%; text-align:center;">Exit Without Joining</button>
-      </div>
     </section>
 
     <section id="myQueueView" class="view panel stack" hidden style="display:none;">

@@ -660,10 +660,12 @@ document.getElementById("nextBtn").onclick = async () => {
   const { serveNext } = await getQueueService();
   serveNext();
 };
-document.getElementById("exitQueueBtn").onclick = async () => {
-  const { exitQueue } = await getQueueService();
-  exitQueue();
-};
+if (document.getElementById("exitQueueBtn")) {
+  document.getElementById("exitQueueBtn").onclick = async () => {
+    const { exitQueue } = await getQueueService();
+    exitQueue();
+  };
+}
 document.getElementById("myQueueExitBtn").onclick = async () => {
   const { exitQueue } = await getQueueService();
   exitQueue();

@@ -509,6 +509,11 @@ h3 {
   padding: 18px;
 }
 
+#joinView {
+  gap: 12px;
+  height: auto;
+}
+
 #createView,
 #joinEntryView {
   height: var(--entry-box-height);
@@ -869,10 +874,22 @@ button {
   border: 1px solid var(--stroke);
   border-radius: 14px;
   background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
-  padding: 16px;
+  padding: 12px;
   display: grid;
-  gap: 12px;
+  gap: 8px;
   border: 2px solid var(--primary-light);
+}
+
+#joinView .toolbar {
+  margin-bottom: 0;
+}
+
+.join-header-card .detail-meta-grid {
+  gap: 12px;
+}
+
+.join-header-card .detail-copy {
+  gap: 4px;
 }
 
 .join-entry-copy {
