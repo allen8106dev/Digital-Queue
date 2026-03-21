@@ -17,6 +17,9 @@ let realtimeModulePromise = null;
 let joinScannerStream = null;
 let joinScannerFrameRequest = null;
 let joinScannerActive = false;
+let hasBootstrapped = false;
+let authRestoreInFlight = false;
+let lastAuthRestoredUid = "";
 const GOOGLE_ACCOUNT_LOGO_URL = "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg";
 const ACCOUNT_AVATAR_KEY = "dq_account_avatar";
 
@@ -450,6 +453,51 @@ async function initFromUrl() {
   }
 }
 
+async function restoreQueueAfterLogin(user) {
+  if (!user?.uid) {
+    return;
+  }
+
+  if (authRestoreInFlight || state.currentQueueId) {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("queue")) {
+    return;
+  }
+
+  if (lastAuthRestoredUid === user.uid) {
+    return;
+  }
+
+  authRestoreInFlight = true;
+  try {
+    const {
+      restoreOwnerQueueFromSession,
+      restoreClientQueueFromSession
+    } = await getQueueService();
+
+    const ownerRestored = await restoreOwnerQueueFromSession();
+    if (ownerRestored) {
+      clearNotice();
+      lastAuthRestoredUid = user.uid;
+      return;
+    }
+
+    const clientRestored = await restoreClientQueueFromSession();
+    if (clientRestored) {
+      clearNotice();
+      lastAuthRestoredUid = user.uid;
+      return;
+    }
+
+    lastAuthRestoredUid = user.uid;
+  } finally {
+    authRestoreInFlight = false;
+  }
+}
+
 // 🎯 NAVIGATION
 document.getElementById("goCreate").onclick = () => switchView(views.create);
 document.getElementById("goJoin").onclick = showJoinEntryView;
@@ -793,13 +841,18 @@ async function bootstrap() {
         state.userId = user.uid;
       } else {
         state.userId = null;
+        lastAuthRestoredUid = "";
       }
       updateAuthButton();
+      if (hasBootstrapped && user) {
+        restoreQueueAfterLogin(user);
+      }
       resolve();
     });
   });
   
   await initFromUrl();
+  hasBootstrapped = true;
   window.__dqAppReady = true;
 }
 

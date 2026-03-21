@@ -159,12 +159,14 @@ function renderOwnerQueueWorkspace(queue, queueId) {
   startRealtime();
 }
 
-async function openQueueForJoin(locatorOrQueueId) {
+async function openQueueForJoin(locatorOrQueueId, options = {}) {
   const queueId = parseQueueIdFromLocator(locatorOrQueueId);
   if (!queueId) {
     setNotice("Enter a queue code");
     return false;
   }
+
+  const requireMembership = Boolean(options.requireMembership);
 
   try {
     const ref = doc(db, "queues", queueId);
@@ -195,6 +197,12 @@ async function openQueueForJoin(locatorOrQueueId) {
     renderMyQueueDetails(queue);
 
     const existingMember = (queue.members || []).find(m => m.id === user?.uid);
+    if (requireMembership && user?.uid && !existingMember) {
+      clearStoredClientQueueId(user.uid);
+      await setClientSessionQueue(user.uid, null);
+      return false;
+    }
+
     const savedName = localStorage.getItem(CLIENT_NAME_KEY);
     if (existingMember && existingMember.name) {
       els.nameInput.value = existingMember.name;
@@ -221,11 +229,21 @@ async function restoreOwnerQueueFromSession() {
   const storedQueueId = localStorage.getItem(OWNER_QUEUE_KEY);
   const storedOwnerUserId = localStorage.getItem(OWNER_USER_KEY);
 
-  if (!user || !user.uid || (storedOwnerUserId && storedOwnerUserId !== user.uid)) {
+  if (!user || !user.uid) {
     return false;
   }
 
-  if (!storedQueueId) {
+  if (storedOwnerUserId && storedOwnerUserId !== user.uid) {
+    localStorage.removeItem(OWNER_QUEUE_KEY);
+    localStorage.removeItem(OWNER_USER_KEY);
+  }
+
+  const scopedStoredQueueId =
+    storedOwnerUserId && storedOwnerUserId !== user.uid
+      ? ""
+      : storedQueueId;
+
+  if (!scopedStoredQueueId) {
     const session = await getUserSession(user.uid);
     const cloudQueueId = typeof session?.activeOwnerQueueId === "string" ? session.activeOwnerQueueId.trim() : "";
     if (!cloudQueueId) {
@@ -240,7 +258,7 @@ async function restoreOwnerQueueFromSession() {
   }
 
   try {
-    const ref = doc(db, "queues", storedQueueId);
+    const ref = doc(db, "queues", scopedStoredQueueId);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
       localStorage.removeItem(OWNER_QUEUE_KEY);
@@ -255,9 +273,9 @@ async function restoreOwnerQueueFromSession() {
       return false;
     }
 
-    await setOwnerSessionQueue(user.uid, storedQueueId);
-    const queue = normalizeQueue(queueData, storedQueueId);
-    renderOwnerQueueWorkspace(queue, storedQueueId);
+    await setOwnerSessionQueue(user.uid, scopedStoredQueueId);
+    const queue = normalizeQueue(queueData, scopedStoredQueueId);
+    renderOwnerQueueWorkspace(queue, scopedStoredQueueId);
     return true;
   } catch {
     return false;
@@ -272,7 +290,7 @@ async function restoreClientQueueFromSession() {
 
   const localQueueId = getStoredClientQueueId(user.uid);
   if (localQueueId) {
-    const openedLocal = await openQueueForJoin(localQueueId);
+    const openedLocal = await openQueueForJoin(localQueueId, { requireMembership: true });
     if (openedLocal) {
       await setClientSessionQueue(user.uid, localQueueId);
       return true;
@@ -286,7 +304,7 @@ async function restoreClientQueueFromSession() {
     return false;
   }
 
-  const openedCloud = await openQueueForJoin(cloudQueueId);
+  const openedCloud = await openQueueForJoin(cloudQueueId, { requireMembership: true });
   if (!openedCloud) {
     await setClientSessionQueue(user.uid, null);
   }
