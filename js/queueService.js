@@ -1,4 +1,4 @@
-import { db, doc, setDoc, getDoc, deleteDoc, updateDoc } from "./firebase.js";
+import { db, doc, setDoc, getDoc, deleteDoc, updateDoc, firebaseConfig } from "./firebase.js";
 import { state, OWNER_QUEUE_KEY, OWNER_USER_KEY, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY, getScopedClientQueueKey } from "./state.js";
 import { randomId, buildJoinLink, normalizeQueue } from "./utils.js";
 import { startRealtime } from "./realtime.js";
@@ -387,6 +387,48 @@ async function endQueueAndReturnHome() {
   return true;
 }
 
+async function endOwnerQueueOnTabClose() {
+  const user = getUser();
+  if (!user?.uid) {
+    return false;
+  }
+
+  const storedQueueId = localStorage.getItem(OWNER_QUEUE_KEY) || "";
+  const storedOwnerUserId = localStorage.getItem(OWNER_USER_KEY) || "";
+  const queueId = storedQueueId || (state.ownerQueueActive ? state.currentQueueId : "");
+
+  if (!queueId || storedOwnerUserId !== user.uid) {
+    return false;
+  }
+
+  const cleanupLocalOwnerState = () => {
+    if (localStorage.getItem(OWNER_QUEUE_KEY) === queueId) {
+      localStorage.removeItem(OWNER_QUEUE_KEY);
+      localStorage.removeItem(OWNER_USER_KEY);
+    }
+  };
+
+  try {
+    await deleteDoc(doc(db, "queues", queueId));
+  } catch {
+    // Keepalive REST fallback gives another chance during tab close.
+    try {
+      const endpoint = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(firebaseConfig.projectId)}/databases/(default)/documents/queues/${encodeURIComponent(queueId)}?key=${encodeURIComponent(firebaseConfig.apiKey)}`;
+      fetch(endpoint, {
+        method: "DELETE",
+        keepalive: true,
+        mode: "cors"
+      });
+    } catch {
+      // ignore close-time cleanup failures
+    }
+  }
+
+  cleanupLocalOwnerState();
+  await setOwnerSessionQueue(user.uid, null);
+  return true;
+}
+
 // 🔥 CREATE QUEUE
 async function createQueue() {
   const user = getUser();
@@ -656,6 +698,7 @@ export {
   clearStoredClientQueueId,
   endQueueById,
   endQueueAndReturnHome,
+  endOwnerQueueOnTabClose,
   createQueue,
   joinQueue,
   exitQueue,

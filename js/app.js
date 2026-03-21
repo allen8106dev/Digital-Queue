@@ -34,6 +34,7 @@ const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const settingsDisplayName = document.getElementById("settingsDisplayName");
 const settingsRememberName = document.getElementById("settingsRememberName");
+let ownerTabCloseHandled = false;
 
 async function getQueueService() {
   if (!queueServiceModulePromise) {
@@ -47,6 +48,29 @@ async function getRealtime() {
     realtimeModulePromise = import("./realtime.js");
   }
   return realtimeModulePromise;
+}
+
+function hasOwnerLiveQueueInThisTab() {
+  const user = getUser();
+  const ownerQueueId = localStorage.getItem("dq_owner_queue_id") || "";
+  const ownerUserId = localStorage.getItem("dq_owner_user_id") || "";
+  return Boolean(
+    user?.uid &&
+    ownerQueueId &&
+    ownerUserId === user.uid &&
+    state.ownerQueueActive &&
+    state.currentQueueId === ownerQueueId
+  );
+}
+
+function endOwnerQueueOnTabClose() {
+  if (ownerTabCloseHandled || !hasOwnerLiveQueueInThisTab()) {
+    return;
+  }
+  ownerTabCloseHandled = true;
+  getQueueService().then(({ endOwnerQueueOnTabClose: endQueueOnClose }) => {
+    endQueueOnClose();
+  });
 }
 
 function goHome() {
@@ -672,6 +696,27 @@ if (els.closeScannerBtn) {
 
 window.addEventListener("popstate", async () => {
   // Browser navigation is now non-destructive; queue lifecycle is controlled by explicit actions.
+});
+
+window.addEventListener("beforeunload", (event) => {
+  if (!hasOwnerLiveQueueInThisTab()) {
+    return;
+  }
+
+  const warning = "Closing this tab will end your live queue for all joiners.";
+  event.preventDefault();
+  event.returnValue = warning;
+});
+
+window.addEventListener("pagehide", (event) => {
+  if (event.persisted) {
+    return;
+  }
+  endOwnerQueueOnTabClose();
+});
+
+window.addEventListener("unload", () => {
+  endOwnerQueueOnTabClose();
 });
 
 // 🎯 ACTIONS
