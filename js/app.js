@@ -704,6 +704,8 @@ window.addEventListener("beforeunload", (event) => {
     return;
   }
 
+  endOwnerQueueOnTabClose();
+
   const warning = "Are you sure? Closing this tab will end your live queue for all joiners.";
   event.preventDefault();
   // Custom text is ignored by most modern browsers, but returnValue must be set.
