@@ -81,8 +81,16 @@
       <div id="createResult" class="stack hidden">
         <div id="liveQueueWorkspace" class="live-queue-workspace">
           <div id="createMonitorPanel" class="section-box stack">
-          <div class="live-queue-header">
+          <div class="live-queue-top-row">
             <h2 id="createQueueTitle">📊 Live Queue Monitor</h2>
+
+            <div class="meta-grid meta-grid-inline">
+              <div class="meta-card"><span>Total</span><strong id="createMetricTotal">0</strong></div>
+              <div class="meta-card"><span>Serving</span><strong id="createMetricServing">-</strong></div>
+              <div class="meta-card"><span>Avg Serve</span><strong id="createMetricAvg">-</strong></div>
+              <div class="meta-card"><span>Timer</span><strong id="createMetricTimer">00:00:00</strong></div>
+            </div>
+
             <aside id="queueDetailsDrawer" class="queue-details-dropdown" aria-label="Queue details">
               <button class="queue-details-toggle" id="queueDetailsToggle" type="button" aria-expanded="false" aria-controls="queueDetailsPanel">
                 Queue Details
@@ -122,22 +130,17 @@
               </div>
             </aside>
           </div>
-          <div class="toolbar">
+
+          <div class="joiners-box">
+            <h3 class="section-title">Queue Joiners</h3>
+            <div id="createMonitorList" class="list list-scroll"></div>
+            <p id="createMonitorEmpty" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
+          </div>
+
+          <div class="toolbar live-queue-bottom-actions">
             <button class="btn-primary" id="createNextBtn" type="button">Serve Next</button>
-            <button class="btn-ghost" id="createRefreshBtn" type="button">Refresh</button>
             <button class="btn-danger" id="createEndQueueBtn" type="button">End Queue</button>
           </div>
-
-          <div class="meta-grid">
-            <div class="meta-card"><span>Total</span><strong id="createMetricTotal">0</strong></div>
-            <div class="meta-card"><span>Serving</span><strong id="createMetricServing">-</strong></div>
-            <div class="meta-card"><span>Avg Serve</span><strong id="createMetricAvg">-</strong></div>
-            <div class="meta-card"><span>You</span><strong id="createMetricPos">-</strong></div>
-            <div class="meta-card"><span>Timer</span><strong id="createMetricTimer">00:00:00</strong></div>
-          </div>
-
-          <div id="createMonitorList" class="list"></div>
-          <p id="createMonitorEmpty" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
           </div>
         </div>
       </div>
@@ -255,24 +258,27 @@
     </section>
 
     <section id="monitorView" class="view panel stack" hidden style="display:none;">
-      <h2 id="queueTitle">📊 Queue Monitor</h2>
+      <div class="live-queue-top-row">
+        <h2 id="queueTitle">📊 Queue Monitor</h2>
 
-      <div class="toolbar">
+        <div class="meta-grid meta-grid-inline">
+          <div class="meta-card"><span>Total</span><strong id="metricTotal">0</strong></div>
+          <div class="meta-card"><span>Serving</span><strong id="metricServing">-</strong></div>
+          <div class="meta-card"><span>Avg Serve</span><strong id="metricAvg">-</strong></div>
+          <div class="meta-card"><span>Timer</span><strong id="metricTimer">00:00:00</strong></div>
+        </div>
+      </div>
+
+      <div class="joiners-box">
+        <h3 class="section-title">Queue Joiners</h3>
+        <div id="queueList" class="list list-scroll"></div>
+        <p id="emptyQueue" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
+      </div>
+
+      <div class="toolbar live-queue-bottom-actions">
         <button class="btn-primary" id="nextBtn" type="button">✅ Serve Next</button>
-        <button class="btn-ghost" id="refreshBtn" type="button">Refresh</button>
         <button class="btn-danger" id="monitorEndQueueBtn" type="button">End Queue</button>
       </div>
-
-      <div class="meta-grid">
-        <div class="meta-card"><span>Total</span><strong id="metricTotal">0</strong></div>
-        <div class="meta-card"><span>Serving</span><strong id="metricServing">-</strong></div>
-        <div class="meta-card"><span>Avg Serve</span><strong id="metricAvg">-</strong></div>
-        <div class="meta-card"><span>You</span><strong id="metricPos">-</strong></div>
-        <div class="meta-card"><span>Timer</span><strong id="metricTimer">00:00:00</strong></div>
-      </div>
-
-      <div id="queueList" class="list"></div>
-      <p id="emptyQueue" style="text-align:center; color:var(--muted); margin:0;">No one in queue</p>
     </section>
   </div>
 

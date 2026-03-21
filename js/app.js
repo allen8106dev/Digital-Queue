@@ -739,14 +739,6 @@ document.getElementById("createNextBtn").onclick = async () => {
   const { serveNext } = await getQueueService();
   serveNext();
 };
-document.getElementById("createRefreshBtn").onclick = async () => {
-  const { refreshCurrentQueue } = await getRealtime();
-  refreshCurrentQueue();
-};
-document.getElementById("refreshBtn").onclick = async () => {
-  const { refreshCurrentQueue } = await getRealtime();
-  refreshCurrentQueue();
-};
 if (els.endQueueBtn) {
   els.endQueueBtn.onclick = async () => {
     const { endQueueAndReturnHome } = await getQueueService();

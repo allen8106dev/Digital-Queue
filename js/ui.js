@@ -69,17 +69,14 @@ const els = {
   metricTotal: document.getElementById("metricTotal"),
   metricServing: document.getElementById("metricServing"),
   metricAvg: document.getElementById("metricAvg"),
-  metricPos: document.getElementById("metricPos"),
   metricTimer: document.getElementById("metricTimer"),
   queueList: document.getElementById("queueList"),
   emptyQueue: document.getElementById("emptyQueue"),
   createMonitorPanel: document.getElementById("createMonitorPanel"),
   createNextBtn: document.getElementById("createNextBtn"),
-  createRefreshBtn: document.getElementById("createRefreshBtn"),
   createMetricTotal: document.getElementById("createMetricTotal"),
   createMetricServing: document.getElementById("createMetricServing"),
   createMetricAvg: document.getElementById("createMetricAvg"),
-  createMetricPos: document.getElementById("createMetricPos"),
   createMetricTimer: document.getElementById("createMetricTimer"),
   createMonitorList: document.getElementById("createMonitorList"),
   createMonitorEmpty: document.getElementById("createMonitorEmpty"),
@@ -288,7 +285,6 @@ function stopQueueTimer() {
 function renderCreateMonitor(queue) {
   const members = queue.members || [];
   const waiting = getQueueOrder(queue);
-  const myIndex = waiting.findIndex(m => m.id === state.userId);
   const avgMinutes = getAverageMinutes(queue);
 
   renderQueueDetailsMeta(queue);
@@ -296,7 +292,6 @@ function renderCreateMonitor(queue) {
   els.createMetricTotal.textContent = waiting.length;
   els.createMetricServing.textContent = queue.servingName || "-";
   els.createMetricAvg.textContent = formatMinutes(avgMinutes);
-  els.createMetricPos.textContent = myIndex >= 0 ? myIndex + 1 : "-";
 
   els.createMonitorList.innerHTML = "";
   members.forEach((m, i) => {
@@ -328,13 +323,10 @@ function renderMonitor(queue) {
   const waiting = getQueueOrder(queue);
   const avgMinutes = getAverageMinutes(queue);
 
-  const myIndex = waiting.findIndex(m => m.id === state.userId);
-
   els.queueTitle.textContent = queue.title;
   els.metricTotal.textContent = waiting.length;
   els.metricServing.textContent = queue.servingName || "-";
   els.metricAvg.textContent = formatMinutes(avgMinutes);
-  els.metricPos.textContent = myIndex >= 0 ? myIndex + 1 : "-";
 
   els.queueList.innerHTML = "";
 

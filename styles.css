@@ -750,6 +750,20 @@ button {
   position: relative;
 }
 
+.live-queue-top-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.live-queue-top-row h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
 .live-queue-header h2 {
   margin: 0;
   flex: 1;
@@ -1146,6 +1160,51 @@ button {
   margin-bottom: 16px;
 }
 
+.meta-grid-inline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.meta-grid-inline .meta-card {
+  padding: 8px 10px;
+  gap: 3px;
+  border-radius: 10px;
+  border-left-width: 3px;
+}
+
+.meta-grid-inline .meta-card span {
+  font-size: 0.65rem;
+}
+
+.meta-grid-inline .meta-card strong {
+  font-size: 0.95rem;
+}
+
+.joiners-box {
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fafbfc 0%, #f7fcff 100%);
+  padding: 10px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+}
+
+.list-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.live-queue-bottom-actions {
+  margin-top: 2px;
+  margin-bottom: 0;
+  justify-content: flex-end;
+}
+
 .meta-card {
   border: 1px solid var(--stroke);
   border-radius: 12px;
@@ -1280,6 +1339,9 @@ body.live-queue-mode #createMonitorPanel {
   padding: 20px;
   margin-left: 0;
   border: 1px solid var(--stroke);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 body.live-queue-mode #createMonitorPanel .section-title {
@@ -1288,6 +1350,15 @@ body.live-queue-mode #createMonitorPanel .section-title {
 
 body.live-queue-mode #createMonitorList {
   align-content: flex-start;
+}
+
+body.live-queue-mode .joiners-box {
+  flex: 1;
+}
+
+body.live-queue-mode .list-scroll {
+  max-height: none;
+  height: 100%;
 }
 
 @media (max-width: 640px) {
@@ -1419,8 +1490,23 @@ body.live-queue-mode #createSetupPanel {
     align-items: flex-start;
   }
 
+  .live-queue-top-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+  }
+
   .live-queue-header h2 {
     font-size: 1.25rem;
+  }
+
+  .live-queue-top-row h2 {
+    white-space: normal;
+  }
+
+  .meta-grid-inline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .queue-details-dropdown {
