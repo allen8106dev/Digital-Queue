@@ -1601,6 +1601,11 @@ body.live-queue-mode #createSetupPanel {
     gap: 8px;
   }
 
+  body.live-queue-mode .app-shell {
+    padding: 8px;
+    gap: 10px;
+  }
+
   .home-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
@@ -1663,6 +1668,74 @@ body.live-queue-mode #createSetupPanel {
   .home-auth-message {
     white-space: nowrap;
     font-size: clamp(1.06rem, 4.2vw, 1.24rem);
+  }
+
+  .live-queue-top-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .live-queue-top-row h2 {
+    white-space: normal;
+    font-size: 1.12rem;
+  }
+
+  .meta-grid-inline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .meta-grid-inline .meta-card {
+    padding: 10px 10px;
+  }
+
+  .queue-details-dropdown {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .queue-details-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  body.live-queue-mode #createMonitorPanel,
+  #monitorView {
+    padding: 12px;
+    border-radius: 12px;
+    gap: 12px;
+  }
+
+  .joiners-box {
+    padding: 12px;
+  }
+
+  .list-scroll {
+    max-height: 52vh;
+  }
+
+  .live-queue-bottom-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    margin-top: 0;
+    justify-content: stretch;
+  }
+
+  .live-queue-bottom-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) and (orientation: portrait) {
+  .meta-grid-inline {
+    grid-template-columns: 1fr;
+  }
+
+  .live-queue-bottom-actions {
+    grid-template-columns: 1fr;
   }
 }
 
