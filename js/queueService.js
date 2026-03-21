@@ -21,6 +21,16 @@ import {
   resetCreateView
 } from "./ui.js";
 
+function notifyQueueEndedAndReturnHome() {
+  if (typeof window.__dqGoHome === "function") {
+    window.__dqGoHome();
+  } else {
+    switchView(views.home);
+    history.replaceState({}, "", window.location.pathname);
+  }
+  setNotice("Queue ended");
+}
+
 async function setOwnerSessionQueue(userId, queueId) {
   void userId;
   void queueId;
@@ -255,7 +265,7 @@ async function openQueueForOwner(queueId) {
         localStorage.removeItem(OWNER_QUEUE_KEY);
         localStorage.removeItem(OWNER_USER_KEY);
       }
-      setNotice("Queue not found");
+      setNotice("Queue ended");
       return false;
     }
 
@@ -333,7 +343,7 @@ async function endQueueAndReturnHome() {
 
   switchView(views.home);
   history.replaceState({}, "", window.location.pathname);
-  setNotice("Queue ended.");
+  setNotice("Queue ended");
 
   return true;
 }
@@ -531,7 +541,7 @@ async function exitQueue(options = {}) {
     const queue = snap.data();
 
     if (!queue) {
-      setNotice("Queue not found");
+      notifyQueueEndedAndReturnHome();
       return;
     }
 
@@ -571,7 +581,7 @@ async function serveNext() {
     const ref = doc(db, "queues", state.currentQueueId);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
-      setNotice("Queue not found");
+      notifyQueueEndedAndReturnHome();
       return;
     }
     const queue = normalizeQueue(snap.data(), state.currentQueueId);
@@ -624,7 +634,7 @@ async function removeClient(memberId) {
     const ref = doc(db, "queues", state.currentQueueId);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
-      setNotice("Queue not found");
+      notifyQueueEndedAndReturnHome();
       return;
     }
 
