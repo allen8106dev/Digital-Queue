@@ -1579,3 +1579,27 @@ body.live-queue-mode #createSetupPanel {
     font-size: clamp(1.06rem, 4.2vw, 1.24rem);
   }
 }
+
+@media (max-width: 720px) {
+  .personal-queue-details.queue-details-dropdown {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .personal-queue-details .queue-details-toggle {
+    width: 100%;
+  }
+
+  .personal-queue-details .queue-details-panel {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    bottom: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin-top: 8px;
+    transform-origin: top center;
+  }
+}
