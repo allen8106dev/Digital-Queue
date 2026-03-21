@@ -786,6 +786,11 @@ button {
   transform: translateY(-1px);
 }
 
+.queue-details-toggle[aria-expanded="true"] {
+  background: #d7f0ff;
+  border-color: #38bdf8;
+}
+
 .queue-details-toggle-icon {
   font-size: 0.85rem;
   transition: transform 0.2s ease;
@@ -809,11 +814,25 @@ button {
   z-index: 100;
   display: grid;
   gap: 8px;
+  overflow: hidden;
+  opacity: 1;
+  max-height: 520px;
+  transform: translateY(0) scale(1);
+  transform-origin: top right;
+  transition: max-height 0.26s ease, opacity 0.2s ease, transform 0.2s ease, padding 0.2s ease, border-width 0.2s ease, margin-top 0.2s ease;
   animation: slideDown 0.3s ease-out;
 }
 
 .queue-details-panel.hidden {
-  display: none;
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  margin-top: 0;
+  transform: translateY(-6px) scale(0.98);
+  pointer-events: none;
+  box-shadow: none;
 }
 
 @keyframes slideDown {
@@ -1010,6 +1029,14 @@ button {
   min-width: 0;
   max-width: none;
   width: 100%;
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .queue-details-panel {
+    transition: none;
+    animation: none;
+  }
 }
 
 .personal-grid {
