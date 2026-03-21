@@ -760,6 +760,8 @@ button {
 .queue-details-dropdown {
   position: relative;
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .queue-details-toggle {
@@ -992,6 +994,7 @@ button {
 
 .personal-queue-details {
   width: 100%;
+  align-items: stretch;
 }
 
 .personal-queue-details .queue-details-toggle {
@@ -1001,10 +1004,12 @@ button {
 
 .personal-queue-details .queue-details-panel {
   position: relative;
-  top: 8px;
+  top: auto;
+  margin-top: 8px;
   right: auto;
   min-width: 0;
   max-width: none;
+  width: 100%;
 }
 
 .personal-grid {
