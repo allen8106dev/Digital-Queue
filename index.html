@@ -212,13 +212,39 @@
         <p>Live updates as you move through the queue.</p>
       </div>
 
-      <div class="personal-grid">
-        <div class="personal-card"><span>Queue Name</span><strong id="myQueueName">-</strong></div>
-        <div class="personal-card"><span>Queue Code</span><strong id="myQueueCode">-</strong></div>
-        <div class="personal-card"><span>Your Name</span><strong id="myQueueUserName">-</strong></div>
+      <div class="personal-queue-details queue-details-dropdown" id="myQueueDetailsDrawer" aria-label="Queue details">
+        <button class="queue-details-toggle" id="myQueueDetailsToggle" type="button" aria-expanded="false" aria-controls="myQueueDetailsPanel">
+          Queue Details
+          <span class="queue-details-toggle-icon" aria-hidden="true">▾</span>
+        </button>
+
+        <div id="myQueueDetailsPanel" class="queue-details-panel hidden">
+          <div class="detail-meta-grid">
+            <div class="detail-row">
+              <div class="detail-copy">
+                <small>Queue Name</small>
+                <strong id="myQueueName">-</strong>
+                <small>Queue Code</small>
+                <strong id="myQueueCode">-</strong>
+              </div>
+            </div>
+
+            <div class="detail-row">
+              <div class="detail-copy">
+                <small>Day</small>
+                <strong id="myQueueDay">-</strong>
+                <small>Date</small>
+                <strong id="myQueueDate">-</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="personal-grid personal-grid-compact">
         <div class="personal-card"><span>Position</span><strong id="myQueuePosition">-</strong></div>
         <div class="personal-card"><span>ETA</span><strong id="myQueueEta">-</strong></div>
-        <div class="personal-card"><span>Now Serving</span><strong id="myQueueServing">-</strong></div>
+        <div class="personal-card"><span>Status</span><strong id="myQueueStatus">-</strong></div>
       </div>
 
       <div id="myQueueNote" class="status-block">Waiting for queue details...</div>

@@ -22,6 +22,7 @@ const ACCOUNT_AVATAR_KEY = "dq_account_avatar";
 
 const accountMenuBtn = document.getElementById("accountMenuBtn");
 const accountMenu = document.getElementById("accountMenu");
+const accountHub = document.querySelector(".account-hub");
 const accountMenuState = document.getElementById("accountMenuState");
 const accountAvatar = document.getElementById("accountAvatar");
 const menuSignIn = document.getElementById("menuSignIn");
@@ -96,6 +97,26 @@ function toggleAccountMenu() {
     return;
   }
   closeAccountMenu();
+}
+
+function updateAccountHubVisibility() {
+  if (!accountHub || !accountMenuBtn) {
+    return;
+  }
+
+  const isOwnerLiveQueue = Boolean(views.create && !views.create.hidden && state.ownerQueueActive);
+  const isMemberInQueue = Boolean(views.myQueue && !views.myQueue.hidden);
+  const isMonitorLiveQueue = Boolean(views.monitor && !views.monitor.hidden);
+  const shouldLockDropdown = isOwnerLiveQueue || isMemberInQueue || isMonitorLiveQueue;
+
+  accountHub.classList.remove("hidden");
+  accountHub.classList.toggle("locked", shouldLockDropdown);
+  accountMenuBtn.disabled = shouldLockDropdown;
+  accountMenuBtn.setAttribute("aria-disabled", String(shouldLockDropdown));
+
+  if (shouldLockDropdown) {
+    closeAccountMenu();
+  }
 }
 
 function openSettingsModal() {
@@ -486,6 +507,8 @@ function updateAuthButton() {
     goCreate.style.opacity = disabled ? "0.5" : "1";
     goJoin.style.opacity = disabled ? "0.5" : "1";
   }
+
+  updateAccountHubVisibility();
 }
 
 if (accountMenuBtn) {
@@ -591,6 +614,10 @@ document.addEventListener("keydown", (event) => {
     closeAccountMenu();
     closeSettingsModal();
   }
+});
+
+document.addEventListener("dq:view-change", () => {
+  updateAccountHubVisibility();
 });
 
 if (els.joinEntryBackBtn) {
@@ -718,6 +745,15 @@ if (els.queueDetailsToggle && els.queueDetailsDrawer) {
     if (panel) {
       const isHidden = panel.classList.toggle("hidden");
       els.queueDetailsToggle.setAttribute("aria-expanded", String(!isHidden));
+    }
+  };
+}
+if (els.myQueueDetailsToggle && els.myQueueDetailsDrawer) {
+  els.myQueueDetailsToggle.onclick = () => {
+    const panel = document.getElementById("myQueueDetailsPanel");
+    if (panel) {
+      const isHidden = panel.classList.toggle("hidden");
+      els.myQueueDetailsToggle.setAttribute("aria-expanded", String(!isHidden));
     }
   };
 }

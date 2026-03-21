@@ -198,6 +198,11 @@ body {
   background: #eff9ff;
 }
 
+.account-hub.locked .account-trigger {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
 .top-right-logo {
   width: 28px;
   height: 28px;
@@ -241,6 +246,10 @@ body {
 .account-caret {
   color: var(--muted);
   font-size: 0.82rem;
+}
+
+.account-hub.locked .account-caret {
+  display: none;
 }
 
 .account-menu {
@@ -974,6 +983,30 @@ button {
   margin: 0;
 }
 
+#myQueueView {
+  width: min(100%, var(--entry-box-width));
+  margin: 0 auto;
+  padding: 16px;
+  gap: 10px;
+}
+
+.personal-queue-details {
+  width: 100%;
+}
+
+.personal-queue-details .queue-details-toggle {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.personal-queue-details .queue-details-panel {
+  position: relative;
+  top: 8px;
+  right: auto;
+  min-width: 0;
+  max-width: none;
+}
+
 .personal-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -981,13 +1014,18 @@ button {
   margin-bottom: 12px;
 }
 
+.personal-grid-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 0;
+}
+
 .personal-card {
   border: 1px solid var(--stroke);
   border-radius: 12px;
   background: var(--panel);
-  padding: 14px;
+  padding: 10px 12px;
   display: grid;
-  gap: 6px;
+  gap: 4px;
   transition: var(--transition);
   box-shadow: var(--shadow);
 }
@@ -1006,7 +1044,7 @@ button {
 }
 
 .personal-card strong {
-  font-size: 1.05rem;
+  font-size: 1rem;
   word-break: break-word;
   color: var(--text);
 }
@@ -1334,7 +1372,8 @@ body.live-queue-mode #createSetupPanel {
 
   .grid-two,
   .home-grid,
-  .personal-grid {
+  .personal-grid,
+  .personal-grid-compact {
     grid-template-columns: 1fr;
   }
 
@@ -1364,6 +1403,12 @@ body.live-queue-mode #createSetupPanel {
     bottom: auto;
     max-width: none;
     min-width: auto;
+  }
+
+  .personal-queue-details .queue-details-panel {
+    position: relative;
+    right: auto;
+    left: auto;
   }
 
   body.live-queue-mode #createMonitorPanel {

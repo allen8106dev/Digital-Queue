@@ -31,6 +31,8 @@ const els = {
   shareQrBtn: document.getElementById("shareQrBtn"),
   queueDetailsDrawer: document.getElementById("queueDetailsDrawer"),
   queueDetailsToggle: document.getElementById("queueDetailsToggle"),
+  myQueueDetailsDrawer: document.getElementById("myQueueDetailsDrawer"),
+  myQueueDetailsToggle: document.getElementById("myQueueDetailsToggle"),
   createStartDate: document.getElementById("createStartDate"),
   createStartTime: document.getElementById("createStartTime"),
   endQueueBtn: document.getElementById("endQueueBtn"),
@@ -56,10 +58,11 @@ const els = {
   joinStatus: document.getElementById("joinStatus"),
   myQueueName: document.getElementById("myQueueName"),
   myQueueCode: document.getElementById("myQueueCode"),
-  myQueueUserName: document.getElementById("myQueueUserName"),
+  myQueueDay: document.getElementById("myQueueDay"),
+  myQueueDate: document.getElementById("myQueueDate"),
   myQueuePosition: document.getElementById("myQueuePosition"),
   myQueueEta: document.getElementById("myQueueEta"),
-  myQueueServing: document.getElementById("myQueueServing"),
+  myQueueStatus: document.getElementById("myQueueStatus"),
   myQueueNote: document.getElementById("myQueueNote"),
   queueTitle: document.getElementById("queueTitle"),
   nextBtn: document.getElementById("nextBtn"),
@@ -149,6 +152,9 @@ function switchView(target) {
   });
   target.hidden = false;
   target.style.display = "block";
+
+  const activeView = Object.entries(views).find(([, view]) => view === target)?.[0] || "unknown";
+  document.dispatchEvent(new CustomEvent("dq:view-change", { detail: { view: activeView } }));
 }
 
 function renderJoinStatus(queue) {
@@ -192,29 +198,54 @@ function renderMyQueueDetails(queue) {
 
   els.myQueueName.textContent = queue.title || "Queue";
   els.myQueueCode.textContent = queue.id || state.currentQueueId || "-";
-  els.myQueueServing.textContent = queue.servingName || "-";
+  const createdAt = Number(queue.createdAt);
+  if (!Number.isFinite(createdAt) || createdAt <= 0) {
+    els.myQueueDay.textContent = "-";
+    els.myQueueDate.textContent = "-";
+  } else {
+    const startedAt = new Date(createdAt);
+    els.myQueueDay.textContent = startedAt.toLocaleDateString(undefined, { weekday: "long" });
+    els.myQueueDate.textContent = startedAt.toLocaleDateString();
+  }
 
-  if (!me || !wait) {
-    els.myQueueUserName.textContent = localStorage.getItem(CLIENT_NAME_KEY) || "-";
+  if (!me) {
     els.myQueuePosition.textContent = "-";
     els.myQueueEta.textContent = "-";
+    els.myQueueStatus.textContent = "-";
     els.myQueueNote.textContent = "You are not currently in this queue.";
     return;
   }
 
-  els.myQueueUserName.textContent = me.name;
+  if (me.served) {
+    els.myQueuePosition.textContent = "-";
+    els.myQueueEta.textContent = "-";
+    els.myQueueStatus.textContent = "Served";
+    els.myQueueNote.textContent = "You have already been served.";
+    return;
+  }
+
+  if (!wait) {
+    els.myQueuePosition.textContent = "-";
+    els.myQueueEta.textContent = "-";
+    els.myQueueStatus.textContent = "-";
+    els.myQueueNote.textContent = "Waiting for queue details...";
+    return;
+  }
+
   els.myQueuePosition.textContent = String(wait.position);
 
   if (wait.isServing) {
     els.myQueueEta.textContent = "Now";
-    els.myQueueNote.textContent = `${me.name}, it is your turn now.`;
+    els.myQueueStatus.textContent = "Serving";
+    els.myQueueNote.textContent = "It is your turn now.";
     return;
   }
 
   const rounded = Math.max(0, Math.round(wait.estimatedMinutes));
   const minuteLabel = rounded === 1 ? "minute" : "minutes";
   els.myQueueEta.textContent = `${rounded} ${minuteLabel}`;
-  els.myQueueNote.textContent = `${me.name}, you are #${wait.position} in ${queue.title}.`;
+  els.myQueueStatus.textContent = "Waiting";
+  els.myQueueNote.textContent = "Live updates are active.";
 }
 
 function renderQr(link) {
