@@ -251,6 +251,10 @@ async function openQueueForOwner(queueId) {
     const ref = doc(db, "queues", queueId);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
+      if (localStorage.getItem(OWNER_QUEUE_KEY) === queueId) {
+        localStorage.removeItem(OWNER_QUEUE_KEY);
+        localStorage.removeItem(OWNER_USER_KEY);
+      }
       setNotice("Queue not found");
       return false;
     }
@@ -389,9 +393,16 @@ async function createQueue() {
   const existingUserId = localStorage.getItem(OWNER_USER_KEY);
   
   if (existingQueueId && existingUserId === user.uid) {
-    // User already has a queue, open it directly in this tab.
-    await openQueueForOwner(existingQueueId);
-    return;
+    // Reuse existing queue only if it still exists; otherwise clear stale local state.
+    const openedExisting = await openQueueForOwner(existingQueueId);
+    if (openedExisting) {
+      return;
+    }
+
+    if (localStorage.getItem(OWNER_QUEUE_KEY) === existingQueueId) {
+      localStorage.removeItem(OWNER_QUEUE_KEY);
+      localStorage.removeItem(OWNER_USER_KEY);
+    }
   }
 
   const title = els.titleInput.value.trim();

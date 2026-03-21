@@ -9,7 +9,7 @@ import {
 import { login, logout, getUser, initAuth } from "./auth.js";
 
 window.__dqAppReady = false;
-const MODULE_VERSION = "2026.03.21.1";
+const MODULE_VERSION = "2026.03.21.2";
 
 const SETTINGS_REMEMBER_NAME_KEY = "dqRememberName";
 
