@@ -54,12 +54,13 @@ function hasOwnerLiveQueueInThisTab() {
   const user = getUser();
   const ownerQueueId = localStorage.getItem("dq_owner_queue_id") || "";
   const ownerUserId = localStorage.getItem("dq_owner_user_id") || "";
+  const isOwner = Boolean(user?.uid && ownerUserId === user.uid);
+  const isOnThatQueue = Boolean(state.currentQueueId && state.currentQueueId === ownerQueueId);
+
   return Boolean(
-    user?.uid &&
+    isOwner &&
     ownerQueueId &&
-    ownerUserId === user.uid &&
-    state.ownerQueueActive &&
-    state.currentQueueId === ownerQueueId
+    isOnThatQueue
   );
 }
 
@@ -703,9 +704,11 @@ window.addEventListener("beforeunload", (event) => {
     return;
   }
 
-  const warning = "Closing this tab will end your live queue for all joiners.";
+  const warning = "Are you sure? Closing this tab will end your live queue for all joiners.";
   event.preventDefault();
+  // Custom text is ignored by most modern browsers, but returnValue must be set.
   event.returnValue = warning;
+  return warning;
 });
 
 window.addEventListener("pagehide", (event) => {
