@@ -1189,7 +1189,7 @@ button {
   padding: 10px;
   box-shadow: var(--shadow);
   display: grid;
-  gap: 8px;
+  gap: 6px;
   min-height: 0;
 }
 
@@ -1244,61 +1244,187 @@ button {
   gap: 10px;
 }
 
-.queue-row {
-  border: 1px solid var(--stroke);
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
+.queue-table-head {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 52px;
   align-items: center;
-  gap: 12px;
-  background: linear-gradient(135deg, #fafbfc 0%, #f5fbff 100%);
-  transition: var(--transition);
-  box-shadow: var(--shadow);
-  border-left: 4px solid var(--primary-light);
-}
-
-.queue-row:hover {
-  border-color: var(--primary);
-  border-left-color: var(--primary);
-  box-shadow: var(--shadow-md);
-  transform: translateX(4px);
-}
-
-.queue-row strong {
-  font-size: 1rem;
-  color: var(--text);
-}
-
-.queue-row small {
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.chip {
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 0.78rem;
+  border: 1px solid var(--stroke);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: #eef2f7;
+  color: #334155;
+  font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.chip.waiting {
-  background: #fef3c7;
-  color: #92400e;
+.queue-table-head span {
+  padding: 10px 12px;
 }
 
-.chip.served {
-  background: #d1fae5;
-  color: #065f46;
+.queue-table-head span:last-child {
+  text-align: right;
+  padding-right: 14px;
 }
 
-.row-actions {
-  display: flex;
-  gap: 8px;
+.queue-table {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.queue-table.list {
+  gap: 0;
+}
+
+.queue-table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
   align-items: center;
+  min-height: 36px;
+  border-bottom: 1px solid #e8edf3;
+  position: relative;
+}
+
+.queue-table-row:last-child {
+  border-bottom: 0;
+}
+
+.queue-table-row:hover {
+  background: #f8fbff;
+}
+
+.queue-table-row.serving {
+  background: #dcfce7;
+  border-bottom-color: #bbf7d0;
+}
+
+.queue-table-row.serving:hover {
+  background: #c7f9d8;
+}
+
+.queue-table-row.served {
+  background: #374151;
+  border-bottom-color: #4b5563;
+}
+
+.queue-table-row.served:hover {
+  background: #2f3b4a;
+}
+
+.queue-table-main {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+}
+
+.queue-sr,
+.queue-name {
+  padding: 7px 12px;
+}
+
+.queue-sr {
+  font-weight: 700;
+  color: #1e293b;
+  text-align: left;
+}
+
+.queue-name {
+  color: #0f172a;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-table-row.served .queue-sr,
+.queue-table-row.served .queue-name {
+  color: #f3f4f6;
+}
+
+.queue-table-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 8px;
+  position: relative;
+}
+
+.row-menu-trigger {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.row-menu-trigger:hover,
+.row-menu-trigger[aria-expanded="true"] {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.queue-table-row.served .row-menu-trigger {
+  color: #e5e7eb;
+}
+
+.row-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 190px;
+  background: #ffffff;
+  border: 1px solid #dbe3ec;
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 15;
+  overflow: hidden;
+  display: grid;
+}
+
+.row-menu-item {
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.row-menu-item:last-child {
+  border-bottom: 0;
+}
+
+.row-menu-item:not(:disabled):hover {
+  background: #f8fafc;
+}
+
+.row-menu-item.muted {
+  color: #64748b;
+  background: #f8fafc;
+  cursor: default;
+  font-weight: 500;
+}
+
+.row-menu-item.warn {
+  color: #b45309;
+}
+
+.row-menu-item.danger {
+  color: #b91c1c;
 }
 
 .hidden {
@@ -1357,8 +1483,9 @@ body.live-queue-mode .joiners-box {
 }
 
 body.live-queue-mode .list-scroll {
-  max-height: none;
-  height: 100%;
+  max-height: 56vh;
+  height: 56vh;
+  overflow-y: auto;
 }
 
 @media (max-width: 640px) {

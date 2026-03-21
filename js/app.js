@@ -88,6 +88,83 @@ function closeAccountMenu() {
   accountMenuBtn.setAttribute("aria-expanded", "false");
 }
 
+function closeQueueRowMenus() {
+  const menus = document.querySelectorAll(".row-menu");
+  menus.forEach((menu) => {
+    menu.classList.add("hidden");
+  });
+
+  const triggers = document.querySelectorAll(".row-menu-trigger");
+  triggers.forEach((trigger) => {
+    trigger.setAttribute("aria-expanded", "false");
+  });
+}
+
+function toggleQueueRowMenu(memberId) {
+  if (!memberId) {
+    return;
+  }
+
+  const menu = document.querySelector(`[data-member-menu="${memberId}"]`);
+  const trigger = document.querySelector(`[data-menu-trigger="${memberId}"]`);
+  if (!menu || !trigger) {
+    return;
+  }
+
+  const willOpen = menu.classList.contains("hidden");
+  closeQueueRowMenus();
+
+  if (willOpen) {
+    menu.classList.remove("hidden");
+    trigger.setAttribute("aria-expanded", "true");
+  }
+}
+
+function bindQueueListActions(listElement) {
+  if (!listElement) {
+    return;
+  }
+
+  listElement.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+
+    const menuTrigger = target.closest("[data-menu-trigger]");
+    if (menuTrigger instanceof HTMLElement) {
+      const memberId = menuTrigger.getAttribute("data-menu-trigger");
+      toggleQueueRowMenu(memberId);
+      return;
+    }
+
+    const removeButton = target.closest("[data-remove-member-id]");
+    if (removeButton instanceof HTMLElement) {
+      const memberId = removeButton.getAttribute("data-remove-member-id");
+      closeQueueRowMenus();
+      if (!memberId) {
+        return;
+      }
+      getQueueService().then(({ removeClient }) => {
+        removeClient(memberId);
+      });
+      return;
+    }
+
+    const banButton = target.closest("[data-ban-member-id]");
+    if (banButton instanceof HTMLElement) {
+      const memberId = banButton.getAttribute("data-ban-member-id");
+      closeQueueRowMenus();
+      if (!memberId) {
+        return;
+      }
+      getQueueService().then(({ banClient }) => {
+        banClient(memberId);
+      });
+    }
+  });
+}
+
 function openAccountMenu() {
   if (!accountMenu || !accountMenuBtn) {
     return;
@@ -631,12 +708,17 @@ document.addEventListener("click", (event) => {
   if (!accountMenu.contains(target) && !accountMenuBtn.contains(target)) {
     closeAccountMenu();
   }
+
+  if (!target.closest(".queue-table-actions")) {
+    closeQueueRowMenus();
+  }
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeAccountMenu();
     closeSettingsModal();
+    closeQueueRowMenus();
   }
 });
 
@@ -787,32 +869,8 @@ if (els.myQueueDetailsToggle && els.myQueueDetailsDrawer) {
     }
   };
 }
-els.createMonitorList.addEventListener("click", (event) => {
-  const target = event.target;
-  if (!(target instanceof HTMLElement)) {
-    return;
-  }
-  const memberId = target.getAttribute("data-remove-member-id");
-  if (!memberId) {
-    return;
-  }
-  getQueueService().then(({ removeClient }) => {
-    removeClient(memberId);
-  });
-});
-els.queueList.addEventListener("click", (event) => {
-  const target = event.target;
-  if (!(target instanceof HTMLElement)) {
-    return;
-  }
-  const memberId = target.getAttribute("data-remove-member-id");
-  if (!memberId) {
-    return;
-  }
-  getQueueService().then(({ removeClient }) => {
-    removeClient(memberId);
-  });
-});
+bindQueueListActions(els.createMonitorList);
+bindQueueListActions(els.queueList);
 
 async function bootstrap() {
   applySavedNamePreference();

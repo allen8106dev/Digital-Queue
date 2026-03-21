@@ -282,6 +282,43 @@ function stopQueueTimer() {
   updateQueueTimer();
 }
 
+function formatJoinedAtLabel(joinedAt) {
+  const parsed = Number(joinedAt);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return "-";
+  }
+  return new Date(parsed).toLocaleTimeString();
+}
+
+function buildQueueTableRow(member, index, queue) {
+  const row = document.createElement("div");
+  row.className = "queue-table-row";
+  const isServing = queue?.servingMemberId === member.id && !member.served;
+  if (isServing) {
+    row.classList.add("serving");
+  } else if (member.served) {
+    row.classList.add("served");
+  }
+  row.setAttribute("data-member-id", member.id);
+  row.innerHTML = `
+    <div class="queue-table-main">
+      <span class="queue-sr">${index + 1}</span>
+      <span class="queue-name">${member.name}</span>
+    </div>
+    <div class="queue-table-actions">
+      <button class="row-menu-trigger" type="button" aria-haspopup="true" aria-expanded="false" data-menu-trigger="${member.id}" aria-label="Open queue row menu">
+        <span aria-hidden="true">...</span>
+      </button>
+      <div class="row-menu hidden" data-member-menu="${member.id}">
+        <button class="row-menu-item muted" type="button" disabled>Joined at ${formatJoinedAtLabel(member.joinedAt)}</button>
+        <button class="row-menu-item danger" type="button" data-remove-member-id="${member.id}">Remove</button>
+        <button class="row-menu-item warn" type="button" data-ban-member-id="${member.id}">Ban User</button>
+      </div>
+    </div>
+  `;
+  return row;
+}
+
 function renderCreateMonitor(queue) {
   const members = queue.members || [];
   const waiting = getQueueOrder(queue);
@@ -295,24 +332,7 @@ function renderCreateMonitor(queue) {
 
   els.createMonitorList.innerHTML = "";
   members.forEach((m, i) => {
-    const row = document.createElement("div");
-    row.className = "queue-row";
-    const isServing = queue.servingMemberId === m.id && !m.served;
-    const queuePos = waiting.findIndex(w => w.id === m.id);
-    const estimatedMinutes = queuePos > 0 ? Math.max(1, Math.round((queuePos - 1) * avgMinutes)) : 0;
-    row.innerHTML = `
-      <div>
-        <strong>${i + 1}. ${m.name}</strong>
-        <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
-      </div>
-      <div class="row-actions">
-        <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
-          ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
-        </span>
-        <button class="btn-danger" data-remove-member-id="${m.id}" type="button">Remove</button>
-      </div>
-      `;
-    els.createMonitorList.appendChild(row);
+    els.createMonitorList.appendChild(buildQueueTableRow(m, i, queue));
   });
 
   els.createMonitorEmpty.classList.toggle("hidden", members.length > 0);
@@ -331,24 +351,7 @@ function renderMonitor(queue) {
   els.queueList.innerHTML = "";
 
   members.forEach((m, i) => {
-    const row = document.createElement("div");
-    row.className = "queue-row";
-    const isServing = queue.servingMemberId === m.id && !m.served;
-    const queuePos = waiting.findIndex(w => w.id === m.id);
-    const estimatedMinutes = queuePos > 0 ? Math.max(1, Math.round((queuePos - 1) * avgMinutes)) : 0;
-    row.innerHTML = `
-        <div>
-          <strong>${i + 1}. ${m.name}</strong>
-          <small>${isServing ? "In service" : m.served ? "Completed" : `ETA ${estimatedMinutes} min`}</small>
-        </div>
-        <div class="row-actions">
-          <span class="chip ${m.served ? "served" : isServing ? "served" : "waiting"}">
-            ${m.served ? "Served" : isServing ? "Serving" : "Waiting"}
-          </span>
-          <button class="btn-danger" data-remove-member-id="${m.id}" type="button">Remove</button>
-        </div>
-        `;
-    els.queueList.appendChild(row);
+    els.queueList.appendChild(buildQueueTableRow(m, i, queue));
   });
 
   els.emptyQueue.classList.toggle("hidden", members.length > 0);

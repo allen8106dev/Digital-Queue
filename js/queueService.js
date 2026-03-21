@@ -432,6 +432,7 @@ async function createQueue() {
     totalServeMs: 0,
     completedServeCount: 0,
     avgMinutes: 0,
+    bannedUserIds: [],
     members: []
   };
 
@@ -483,6 +484,11 @@ async function joinQueue() {
       return;
     }
     const queue = normalizeQueue(snap.data(), state.currentQueueId);
+
+    if ((queue.bannedUserIds || []).includes(user.uid)) {
+      setNotice("You are banned from this queue");
+      return;
+    }
 
     // prevent duplicate join
     const exists = queue.members.find(m => m.id === user.uid);
@@ -670,6 +676,53 @@ async function removeClient(memberId) {
   }
 }
 
+async function banClient(memberId) {
+  if (!state.currentQueueId || !memberId) {
+    return;
+  }
+
+  try {
+    const ref = doc(db, "queues", state.currentQueueId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      notifyQueueEndedAndReturnHome();
+      return;
+    }
+
+    const queue = normalizeQueue(snap.data(), state.currentQueueId);
+    const target = queue.members.find(m => m.id === memberId);
+    if (!target) {
+      setNotice("Client already removed");
+      return;
+    }
+
+    const members = queue.members.filter(m => m.id !== memberId);
+    const bannedUserIds = Array.from(new Set([...(queue.bannedUserIds || []), memberId]));
+    let servingMemberId = queue.servingMemberId;
+    let servingName = queue.servingName;
+    let servingStartedAt = queue.servingStartedAt;
+
+    if (queue.servingMemberId === memberId) {
+      const next = members.find(m => !m.served) || null;
+      servingMemberId = next ? next.id : null;
+      servingName = next ? next.name : "-";
+      servingStartedAt = next ? Date.now() : null;
+    }
+
+    await updateDoc(ref, {
+      members,
+      bannedUserIds,
+      servingMemberId,
+      servingName,
+      servingStartedAt
+    });
+
+    setNotice(`${target.name} was banned from this queue`);
+  } catch {
+    setNotice("Error banning client");
+  }
+}
+
 export {
   parseQueueIdFromLocator,
   openQueueForJoin,
@@ -685,5 +738,6 @@ export {
   joinQueue,
   exitQueue,
   serveNext,
-  removeClient
+  removeClient,
+  banClient
 };
