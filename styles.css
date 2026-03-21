@@ -1673,21 +1673,43 @@ body.live-queue-mode #createSetupPanel {
   .live-queue-top-row {
     grid-template-columns: 1fr;
     align-items: stretch;
-    gap: 10px;
+    gap: 8px;
   }
 
   .live-queue-top-row h2 {
     white-space: normal;
     font-size: 1.12rem;
+    order: 1;
+  }
+
+  .live-queue-top-row .queue-details-dropdown {
+    order: 2;
   }
 
   .meta-grid-inline {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    order: 3;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
   }
 
   .meta-grid-inline .meta-card {
-    padding: 10px 10px;
+    padding: 7px 6px;
+    border-radius: 8px;
+    border-left-width: 2px;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .meta-grid-inline .meta-card span {
+    font-size: 0.56rem;
+    letter-spacing: 0.03em;
+    line-height: 1.1;
+  }
+
+  .meta-grid-inline .meta-card strong {
+    font-size: 0.8rem;
+    line-height: 1.1;
   }
 
   .queue-details-dropdown {
@@ -1730,10 +1752,6 @@ body.live-queue-mode #createSetupPanel {
 }
 
 @media (max-width: 420px) and (orientation: portrait) {
-  .meta-grid-inline {
-    grid-template-columns: 1fr;
-  }
-
   .live-queue-bottom-actions {
     grid-template-columns: 1fr;
   }
