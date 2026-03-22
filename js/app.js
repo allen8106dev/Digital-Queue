@@ -1,4 +1,4 @@
-import { state, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY, getScopedClientQueueKey } from "./state.js";
+import { state, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY, getScopedClientQueueKey, getOrCreateGuestUserId } from "./state.js";
 import {
   views,
   els,
@@ -496,8 +496,8 @@ async function initFromUrl() {
   }
 
   state.currentQueueId = id;
-  if (mode !== "monitor" && mode !== "owner" && user?.uid) {
-    localStorage.setItem(getScopedClientQueueKey(user.uid), id);
+  if (mode !== "monitor" && mode !== "owner" && state.userId) {
+    localStorage.setItem(getScopedClientQueueKey(state.userId), id);
     localStorage.setItem(CLIENT_QUEUE_KEY, id);
   }
   const savedName = localStorage.getItem(CLIENT_NAME_KEY);
@@ -597,16 +597,6 @@ function updateAuthButton() {
     homeAuthMessage.textContent = user
       ? `Welcome, ${resolvedName || "User"}`
       : "Welcome";
-  }
-
-  const goCreate = document.getElementById("goCreate");
-  const goJoin = document.getElementById("goJoin");
-  if (goCreate && goJoin) {
-    const disabled = !user;
-    goCreate.disabled = disabled;
-    goJoin.disabled = disabled;
-    goCreate.style.opacity = disabled ? "0.5" : "1";
-    goJoin.style.opacity = disabled ? "0.5" : "1";
   }
 
   updateAccountHubVisibility();
@@ -875,12 +865,14 @@ bindQueueListActions(els.queueList);
 async function bootstrap() {
   applySavedNamePreference();
 
+  state.userId = getOrCreateGuestUserId();
+
   await new Promise((resolve) => {
     initAuth((user) => {
       if (user) {
         state.userId = user.uid;
       } else {
-        state.userId = null;
+        state.userId = getOrCreateGuestUserId();
       }
       updateAuthButton();
       resolve();
