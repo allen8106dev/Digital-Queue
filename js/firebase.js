@@ -1,11 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore,
+  collection,
   doc,
   setDoc,
   getDoc,
+  getDocs,
   deleteDoc,
   updateDoc,
+  query,
+  where,
+  limit,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
@@ -28,4 +33,20 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-export { db, doc, setDoc, getDoc, deleteDoc, updateDoc, onSnapshot, auth, provider, firebaseConfig };
+export {
+  db,
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+  query,
+  where,
+  limit,
+  onSnapshot,
+  auth,
+  provider,
+  firebaseConfig
+};

@@ -38,6 +38,14 @@ const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const settingsDisplayName = document.getElementById("settingsDisplayName");
 const settingsRememberName = document.getElementById("settingsRememberName");
+const goCreateBtn = document.getElementById("goCreate");
+const createBtn = document.getElementById("createBtn");
+const createOwnerLimitHint = document.getElementById("createOwnerLimitHint");
+const createOwnerLimitHintMessage = document.getElementById("createOwnerLimitHintMessage");
+const hintGoToQueueBtn = document.getElementById("hintGoToQueueBtn");
+const hintEndQueueBtn = document.getElementById("hintEndQueueBtn");
+
+let activeOwnerQueueId = "";
 
 async function getQueueService() {
   if (!queueServiceModulePromise) {
@@ -229,6 +237,46 @@ function applySavedNamePreference() {
   if (savedName && els.nameInput) {
     els.nameInput.value = savedName;
   }
+}
+
+function setCreateLimitHint(message = "") {
+  if (!createOwnerLimitHint) {
+    return;
+  }
+
+  const text = String(message || "").trim();
+  if (createOwnerLimitHintMessage) {
+    createOwnerLimitHintMessage.textContent = text;
+  }
+  createOwnerLimitHint.classList.toggle("hidden", !text);
+}
+
+function applyCreateAvailability() {
+  if (!createBtn) {
+    return;
+  }
+
+  const hasActiveOwnerQueue = Boolean(activeOwnerQueueId);
+  createBtn.disabled = hasActiveOwnerQueue;
+  createBtn.setAttribute("aria-disabled", String(hasActiveOwnerQueue));
+
+  if (hasActiveOwnerQueue) {
+    setCreateLimitHint(`You already have an active queue (${activeOwnerQueueId}).`);
+    return;
+  }
+
+  setCreateLimitHint("");
+}
+
+async function refreshCreateAvailability() {
+  try {
+    const { getActiveOwnerQueueIdForCurrentUser } = await getQueueService();
+    activeOwnerQueueId = await getActiveOwnerQueueIdForCurrentUser();
+  } catch {
+    activeOwnerQueueId = "";
+  }
+
+  applyCreateAvailability();
 }
 
 async function shareQueueLink() {
@@ -544,12 +592,17 @@ function syncMyQueueBackGuard() {
 }
 
 // 🎯 NAVIGATION
-document.getElementById("goCreate").onclick = () => {
-  if (!state.ownerQueueActive) {
-    resetCreateView();
-  }
-  switchView(views.create);
-};
+if (goCreateBtn) {
+  goCreateBtn.onclick = async () => {
+    if (!state.ownerQueueActive) {
+      resetCreateView();
+    }
+
+    await refreshCreateAvailability();
+
+    switchView(views.create);
+  };
+}
 document.getElementById("goJoin").onclick = showJoinEntryView;
 document.getElementById("toHomeFromJoin").onclick = goHome;
 const myQueueBackBtn = document.getElementById("myQueueBackBtn");
@@ -600,6 +653,7 @@ function updateAuthButton() {
   }
 
   updateAccountHubVisibility();
+  void refreshCreateAvailability();
 }
 
 if (accountMenuBtn) {
@@ -715,6 +769,7 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("dq:view-change", () => {
   updateAccountHubVisibility();
   syncMyQueueBackGuard();
+  void refreshCreateAvailability();
 });
 
 if (els.joinEntryBackBtn) {
@@ -785,10 +840,51 @@ window.addEventListener("popstate", async () => {
 });
 
 // 🎯 ACTIONS
-document.getElementById("createBtn").onclick = async () => {
-  const { createQueue } = await getQueueService();
-  createQueue();
-};
+if (hintGoToQueueBtn) {
+  hintGoToQueueBtn.onclick = async () => {
+    if (!activeOwnerQueueId) {
+      setNotice("Queue ID not found");
+      return;
+    }
+
+    const { openQueueForOwner } = await getQueueService();
+    const opened = await openQueueForOwner(activeOwnerQueueId);
+    if (!opened) {
+      setNotice("Could not open your queue");
+    }
+  };
+}
+
+if (hintEndQueueBtn) {
+  hintEndQueueBtn.onclick = async () => {
+    const confirmed = window.confirm("End your active queue? This cannot be undone.");
+    if (!confirmed) {
+      return;
+    }
+
+    const { endQueueById } = await getQueueService();
+    const ended = await endQueueById(activeOwnerQueueId);
+    if (ended) {
+      activeOwnerQueueId = "";
+      applyCreateAvailability();
+      setNotice("Queue ended");
+    } else {
+      setNotice("Error ending queue");
+    }
+  };
+}
+
+if (createBtn) {
+  createBtn.onclick = async () => {
+    if (createBtn.disabled) {
+      setNotice("You already have an active queue");
+      return;
+    }
+
+    const { createQueue } = await getQueueService();
+    createQueue();
+  };
+}
 document.getElementById("joinBtn").onclick = async () => {
   const { joinQueue } = await getQueueService();
   joinQueue();
@@ -864,6 +960,7 @@ bindQueueListActions(els.queueList);
 
 async function bootstrap() {
   applySavedNamePreference();
+  applyCreateAvailability();
 
   state.userId = getOrCreateGuestUserId();
 
@@ -878,6 +975,8 @@ async function bootstrap() {
       resolve();
     });
   });
+
+  await refreshCreateAvailability();
   
   await initFromUrl();
   window.__dqAppReady = true;

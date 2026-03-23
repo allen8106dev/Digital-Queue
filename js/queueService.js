@@ -1,4 +1,4 @@
-import { db, doc, setDoc, getDoc, deleteDoc, updateDoc, firebaseConfig } from "./firebase.js";
+import { db, collection, doc, setDoc, getDoc, getDocs, deleteDoc, updateDoc, query, where, limit, firebaseConfig } from "./firebase.js";
 import { state, OWNER_QUEUE_KEY, OWNER_USER_KEY, CLIENT_QUEUE_KEY, CLIENT_NAME_KEY, getScopedClientQueueKey } from "./state.js";
 import { randomId, buildJoinLink, normalizeQueue } from "./utils.js";
 import { startRealtime } from "./realtime.js";
@@ -402,6 +402,66 @@ async function endOwnerQueueOnTabClose() {
   return true;
 }
 
+async function findActiveQueueByOwner(ownerId) {
+  if (!ownerId) {
+    return "";
+  }
+
+  const ownerQueueQuery = query(
+    collection(db, "queues"),
+    where("ownerId", "==", ownerId),
+    limit(1)
+  );
+  const snapshot = await getDocs(ownerQueueQuery);
+  if (snapshot.empty) {
+    return "";
+  }
+
+  return snapshot.docs[0]?.id || "";
+}
+
+async function getActiveOwnerQueueIdForCurrentUser() {
+  const user = getUser();
+  const activeOwnerId = state.userId || user?.uid || "";
+  if (!activeOwnerId) {
+    return "";
+  }
+
+  const existingQueueId = localStorage.getItem(OWNER_QUEUE_KEY) || "";
+  const existingUserId = localStorage.getItem(OWNER_USER_KEY) || "";
+  const hasLocalOwnerQueue = existingQueueId && existingUserId === activeOwnerId;
+
+  if (hasLocalOwnerQueue) {
+    try {
+      const localSnap = await getDoc(doc(db, "queues", existingQueueId));
+      if (localSnap.exists()) {
+        const queueData = localSnap.data() || {};
+        if (queueData.ownerId === activeOwnerId) {
+          return existingQueueId;
+        }
+      }
+    } catch {
+      // Firestore error; fall through to query all queues for this owner
+    }
+
+    // Local queue doesn't exist or verification failed; clear stale cache
+    localStorage.removeItem(OWNER_QUEUE_KEY);
+    localStorage.removeItem(OWNER_USER_KEY);
+  }
+
+  const ownerQueueId = await findActiveQueueByOwner(activeOwnerId);
+  if (!ownerQueueId) {
+    return "";
+  }
+
+  localStorage.setItem(OWNER_QUEUE_KEY, ownerQueueId);
+  localStorage.setItem(OWNER_USER_KEY, activeOwnerId);
+  if (user?.uid) {
+    await setOwnerSessionQueue(user.uid, ownerQueueId);
+  }
+  return ownerQueueId;
+}
+
 // 🔥 CREATE QUEUE
 async function createQueue() {
   const user = getUser();
@@ -411,21 +471,18 @@ async function createQueue() {
     return;
   }
 
-  // Check if user already has an active owner queue
-  const existingQueueId = localStorage.getItem(OWNER_QUEUE_KEY);
-  const existingUserId = localStorage.getItem(OWNER_USER_KEY);
-  
-  if (existingQueueId && existingUserId === activeOwnerId) {
-    // Reuse existing queue only if it still exists; otherwise clear stale local state.
-    const openedExisting = await openQueueForOwner(existingQueueId);
-    if (openedExisting) {
+  try {
+    const ownerQueueId = await getActiveOwnerQueueIdForCurrentUser();
+    if (ownerQueueId) {
+      const openedOwnerQueue = await openQueueForOwner(ownerQueueId);
+      if (!openedOwnerQueue) {
+        setNotice("You already have an active queue");
+      }
       return;
     }
-
-    if (localStorage.getItem(OWNER_QUEUE_KEY) === existingQueueId) {
-      localStorage.removeItem(OWNER_QUEUE_KEY);
-      localStorage.removeItem(OWNER_USER_KEY);
-    }
+  } catch {
+    setNotice("Error checking existing queue");
+    return;
   }
 
   const title = els.titleInput.value.trim();
@@ -753,6 +810,7 @@ export {
   parseQueueIdFromLocator,
   openQueueForJoin,
   openQueueForOwner,
+  getActiveOwnerQueueIdForCurrentUser,
   restoreOwnerQueueFromSession,
   restoreClientQueueFromSession,
   getStoredClientQueueId,

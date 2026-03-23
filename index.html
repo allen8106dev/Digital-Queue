@@ -76,6 +76,14 @@
           <button class="btn-primary" id="createBtn" type="button">Create Queue</button>
           <button class="btn-ghost" id="backFromCreateSetup" type="button">Back</button>
         </div>
+
+        <div id="createOwnerLimitHint" class="create-limit-hint hidden" role="status" aria-live="polite">
+          <p id="createOwnerLimitHintMessage" class="create-limit-hint-message"></p>
+          <div class="create-limit-hint-actions">
+            <button type="button" id="hintGoToQueueBtn" class="btn-secondary">Go to Queue</button>
+            <button type="button" id="hintEndQueueBtn" class="btn-danger-small">End Queue</button>
+          </div>
+        </div>
       </div>
 
       <div id="createResult" class="stack hidden">
