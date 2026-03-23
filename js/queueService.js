@@ -439,6 +439,7 @@ async function createQueue() {
     title,
     ownerId: activeOwnerId,
     createdAt: Date.now(),
+    lastActivityAt: Date.now(),
     servingName: "-",
     servingMemberId: null,
     servingStartedAt: null,
@@ -510,14 +511,15 @@ async function joinQueue() {
     const exists = queue.members.find(m => m.id === activeUserId);
 
     if (!exists) {
+      const now = Date.now();
       queue.members.push({
         id: activeUserId,
         name,
-        joinedAt: Date.now(),
+        joinedAt: now,
         served: false
       });
 
-      await updateDoc(ref, { members: queue.members });
+      await updateDoc(ref, { members: queue.members, lastActivityAt: now });
       localStorage.setItem(CLIENT_NAME_KEY, name);
     } else {
       localStorage.setItem(CLIENT_NAME_KEY, exists.name || name);
@@ -578,7 +580,7 @@ async function exitQueue(options = {}) {
       return;
     }
 
-    await updateDoc(ref, { members: updatedMembers });
+    await updateDoc(ref, { members: updatedMembers, lastActivityAt: Date.now() });
     clearStoredClientQueueId(activeUserId);
     if (user?.uid) {
       await setClientSessionQueue(user.uid, null);
@@ -645,7 +647,8 @@ async function serveNext() {
       servingStartedAt,
       completedServeCount,
       totalServeMs,
-      avgMinutes
+      avgMinutes,
+      lastActivityAt: now
     });
   } catch {
     setNotice("Error updating queue");
@@ -688,7 +691,8 @@ async function removeClient(memberId) {
       members,
       servingMemberId,
       servingName,
-      servingStartedAt
+      servingStartedAt,
+      lastActivityAt: Date.now()
     });
 
     setNotice(`${target.name} removed from queue`);
@@ -735,7 +739,8 @@ async function banClient(memberId) {
       bannedUserIds,
       servingMemberId,
       servingName,
-      servingStartedAt
+      servingStartedAt,
+      lastActivityAt: Date.now()
     });
 
     setNotice(`${target.name} was banned from this queue`);

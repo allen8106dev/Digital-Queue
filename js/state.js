@@ -11,6 +11,11 @@ const state = {
   currentQrUrl: "",
   ownerQueueActive: false,
   unsubscribe: null,
+  realtimeLifecycleInterval: null,
+  latestQueueSnapshot: null,
+  inactivityWarningKey: "",
+  autoEndInProgress: false,
+  queueEndNoticeOverride: "",
   queueTimerInterval: null,
   queueStartedAt: null,
   userId: null

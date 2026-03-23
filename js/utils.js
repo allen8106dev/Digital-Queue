@@ -31,6 +31,8 @@ function formatMinutes(value) {
 
 function normalizeQueue(queue, id = "") {
   const safeQueue = queue || {};
+  const createdAt = Number(safeQueue.createdAt) || Date.now();
+  const lastActivityAt = Number(safeQueue.lastActivityAt) || createdAt;
   return {
     id: safeQueue.id || id,
     title: safeQueue.title || "Queue",
@@ -43,7 +45,8 @@ function normalizeQueue(queue, id = "") {
     totalServeMs: Number(safeQueue.totalServeMs) || 0,
     completedServeCount: Number(safeQueue.completedServeCount) || 0,
     avgMinutes: Number(safeQueue.avgMinutes) || 0,
-    createdAt: Number(safeQueue.createdAt) || Date.now()
+    createdAt,
+    lastActivityAt
   };
 }
 
