@@ -319,16 +319,32 @@ function buildQueueTableRow(member, index, queue) {
   return row;
 }
 
+function getCalculatedAverageMinutes(queue) {
+  const completedServeCount = Number(queue?.completedServeCount) || 0;
+  const totalServeMs = Number(queue?.totalServeMs) || 0;
+
+  if (completedServeCount > 0 && totalServeMs > 0) {
+    return totalServeMs / completedServeCount / 60000;
+  }
+
+  const persistedAverage = Number(queue?.avgMinutes);
+  if (persistedAverage > 0) {
+    return persistedAverage;
+  }
+
+  return null;
+}
+
 function renderCreateMonitor(queue) {
   const members = queue.members || [];
   const waiting = getQueueOrder(queue);
-  const avgMinutes = getAverageMinutes(queue);
+  const avgMinutes = getCalculatedAverageMinutes(queue);
 
   renderQueueDetailsMeta(queue);
 
   els.createMetricTotal.textContent = waiting.length;
   els.createMetricServing.textContent = queue.servingName || "-";
-  els.createMetricAvg.textContent = formatMinutes(avgMinutes);
+  els.createMetricAvg.textContent = avgMinutes === null ? "-" : formatMinutes(avgMinutes);
 
   els.createMonitorList.innerHTML = "";
   members.forEach((m, i) => {
@@ -341,12 +357,12 @@ function renderCreateMonitor(queue) {
 function renderMonitor(queue) {
   const members = queue.members || [];
   const waiting = getQueueOrder(queue);
-  const avgMinutes = getAverageMinutes(queue);
+  const avgMinutes = getCalculatedAverageMinutes(queue);
 
   els.queueTitle.textContent = queue.title;
   els.metricTotal.textContent = waiting.length;
   els.metricServing.textContent = queue.servingName || "-";
-  els.metricAvg.textContent = formatMinutes(avgMinutes);
+  els.metricAvg.textContent = avgMinutes === null ? "-" : formatMinutes(avgMinutes);
 
   els.queueList.innerHTML = "";
 

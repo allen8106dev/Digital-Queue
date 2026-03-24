@@ -116,6 +116,14 @@ function renderOwnerQueueWorkspace(queue, queueId) {
   renderCreateMonitor(queue);
   startQueueTimer(queue.createdAt);
   startRealtime();
+
+  const queueDetailsPanel = document.getElementById("queueDetailsPanel");
+  if (queueDetailsPanel) {
+    queueDetailsPanel.classList.remove("hidden");
+  }
+  if (els.queueDetailsToggle) {
+    els.queueDetailsToggle.setAttribute("aria-expanded", "true");
+  }
 }
 
 async function openQueueForJoin(locatorOrQueueId, options = {}) {
