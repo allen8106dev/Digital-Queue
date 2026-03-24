@@ -633,7 +633,17 @@ function updateAuthButton() {
   }
 
   if (accountMenuState) {
-    accountMenuState.textContent = user ? user.displayName || "Signed in" : "Sign in";
+    const isQueueContext =
+      (Boolean(state.ownerQueueActive) && Boolean(views.create && !views.create.hidden)) ||
+      Boolean(state.currentQueueId && (
+        (views.join && !views.join.hidden) ||
+        (views.myQueue && !views.myQueue.hidden) ||
+        (views.monitor && !views.monitor.hidden)
+      ));
+
+    accountMenuState.textContent = user
+      ? user.displayName || "Signed in"
+      : (isQueueContext ? "Guest" : "Sign in");
   }
 
   if (menuSignIn) {
@@ -767,6 +777,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("dq:view-change", () => {
+  updateAuthButton();
   updateAccountHubVisibility();
   syncMyQueueBackGuard();
   void refreshCreateAvailability();
